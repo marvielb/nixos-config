@@ -1,6 +1,5 @@
-{ modulesPath, ... }: {
-
-  flake.nixosModules.portfolioConfiguration = { pkgs, lib, ... }: {
+{ ... }: {
+  flake.nixosModules.portfolioConfiguration = { pkgs, lib, modulesPath, ... }: {
     imports = [
       (modulesPath + "/virtualisation/proxmox-lxc.nix")
     ];
@@ -25,13 +24,6 @@
         PasswordAuthentication = true;
         PermitEmptyPasswords = "yes";
       };
-    };
-    # Cache DNS lookups to improve performance
-    services.resolved = {
-      extraConfig = ''
-        Cache=true
-        CacheFromLocalhost=true
-      '';
     };
     system.stateVersion = lib.mkDefault "25.11";
   };
