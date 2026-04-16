@@ -1,7 +1,8 @@
-{ ... }: {
+{ self, ... }: {
   flake.nixosModules.portfolioConfiguration = { pkgs, lib, modulesPath, ... }: {
     imports = [
       (modulesPath + "/virtualisation/proxmox-lxc.nix")
+      self.nixosModules.lazyEmail
     ];
 
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -26,6 +27,8 @@
       };
     };
     system.stateVersion = lib.mkDefault "25.11";
+
+    networking.firewall.allowedTCPPorts = [ 80 443 ];
   };
 
 }
