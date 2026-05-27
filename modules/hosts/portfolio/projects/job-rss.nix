@@ -72,12 +72,13 @@
         phpEnv."PATH" = lib.makeBinPath [ pkgs.php83 ];
       };
 
-      systemd.services."phpfpm-${app}" = {
-        preStart = ''
+      system.activationScripts.jobRssStorage = {
+        text = ''
           mkdir -p ${appDir}/storage/{logs,framework/{views,cache,sessions},app}
           chmod -R 755 ${appDir}
           chown -R ${projectUser}:nginx ${appDir}
         '';
+        deps = [ "users" ];
       };
     };
 }
