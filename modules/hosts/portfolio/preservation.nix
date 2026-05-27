@@ -19,10 +19,7 @@
           ];
 
           files = [
-            {
-              file = "/etc/machine-id";
-              inInitrd = true;
-            }
+            "/etc/machine-id"
           ];
 
           # Preserve user files
@@ -30,6 +27,7 @@
             directories = [
               ".ssh"
               ".mozilla"
+              "jobs/database"
             ];
 
             files = [

@@ -7,6 +7,7 @@
       self.nixosModules.portfolioDisko
       self.nixosModules.portfolioPreservation
       self.nixosModules.lazyEmail
+      self.nixosModules.jobRss
     ];
   };
 }

@@ -31,16 +31,16 @@
     nix.settings.require-sigs = false;
 
     security.sudo.extraRules = [
-      { users = [ "portfolio" ]; commands = [
-        { command = "ALL"; options = [ "NOPASSWD" ]; }
-      ]; }
+      {
+        users = [ "portfolio" ];
+        commands = [
+          { command = "ALL"; options = [ "NOPASSWD" ]; }
+        ];
+      }
     ];
 
     system.stateVersion = "25.11";
 
-    # services.xserver.enable = true;
-    # services.displayManager.ly.enable = true;
-    # services.desktopManager.gnome.enable = true;
 
     networking.firewall.enable = false;
   };

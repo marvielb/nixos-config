@@ -12,6 +12,8 @@
     preservation.url = "github:nix-community/preservation";
 
     lazy-email.url = "github:marvielb/lazy-email";
+
+    job-rss.url = "github:marvielb/job-rss";
   };
 
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
