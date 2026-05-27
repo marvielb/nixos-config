@@ -10,6 +10,7 @@ The portfolio host uses impermanence (ZFS snapshots + tmpfs via preservation). C
 - PHP-FPM pool `jobs` runs as dedicated `${app}-jobs` system user (member of the `nginx` group)
 - Persist the SQLite database at `/var/lib/jobs/database/database.sqlite`
 - Persist writable storage at `/var/lib/jobs/storage`
+- Automate first-time deploy setup (migrations, passport keys, passport client) via activation scripts
 - Follow the `lazy-email.nix` module pattern (`{ inputs, ... }: { flake.nixosModules.<name> = ...; }`)
 
 **Non-Goals:**
@@ -25,7 +26,7 @@ The portfolio host uses impermanence (ZFS snapshots + tmpfs via preservation). C
 
 3. **PHP-FPM socket ownership** — `listen.owner` set to nginx user so the socket is readable by nginx without running PHP-FPM as root.
 
-4. **Database at `/var/lib/jobs/database/`** — Under `/var/lib/` for system-managed app state, avoiding home directory persistence issues. The flake-built package is read-only in the Nix store; only the mutable database lives on the filesystem.
+4. **Database at `/var/lib/jobs/database/` (explicitly preserved)** — Under `/var/lib/` for system-managed app state, avoiding home directory persistence issues. The flake-built package is read-only in the Nix store; only the mutable database lives on the filesystem. The database file is explicitly listed in `preservation.nix` under `files` (alongside `/var/lib/jobs/` which already covers it as a directory) for clarity that it's intended to persist.
 
 5. **`APP_KEY` via pool `settings."env[APP_KEY]"`** — PHP-FPM pool `settings."env[KEY]"` provides proper quoting for base64 values (unlike `phpEnv` which can mangle `=` signs). Laravel reads `$_ENV` before `.env`, so setting it in the module overrides the placeholder from the package build.
 
@@ -37,9 +38,11 @@ The portfolio host uses impermanence (ZFS snapshots + tmpfs via preservation). C
 
 9. **`variables_order = "EGPCS"`** — NixOS's PHP package defaults to `"GPCS"` (no 'E'), so `$_ENV` is never populated from the process environment. Pool `env[]` settings (like `APP_KEY`) need 'E' in `variables_order` to appear in `$_ENV`, which is where Laravel's `env()` helper checks first.
 
+10. **Deploy setup via activation script** — `system.activationScripts.jobRssDeploy` runs Laravel's `migrate --force` (idempotent), `passport:keys` (no-op if keys exist), and `passport:client --client` (guarded by a sqlite3 check for duplicate clients) on every `nixos-rebuild switch`. After passport setup, it checks if `onlinejobsph_job_listings` and `indeed_job_listings` tables are both empty — if so, runs `app:scrape` to populate initial data. Depends on `users` and `jobRssStorage` so the user and storage directories exist first. A final `chown` fixes ownership of any files created as root (e.g., passport key files). This automates the manual setup steps from the project's README without requiring interactive shell access.
+
 ## Risks / Trade-offs
 
-- **No separation between app updates and DB schema** — When the flake input updates (new package build), the DB might need migrations. Mitigation: deploy manually via `nixos-rebuild switch` after verifying migrations locally.
+- **No separation between app updates and DB schema** — When the flake input updates (new package build), migrations run automatically on the next `nixos-rebuild switch`. This is safe (migrations are idempotent) but means schema changes are coupled to system updates. Rebuild locally first if you need to review migrations before deploying.
 - **SQLite performance at scale** — SQLite is fine for single-user RSS aggregation but won't handle concurrent writes. Acceptable for this use case.
 - **No `.env` management** — App config overrides are manual or done elsewhere. The module provides enough env vars to connect the DB and set the app key.
-- **Activation script doesn't run at boot** — Only runs on `nixos-rebuild switch`. If restoration from preservation is somehow incomplete (corrupted state, manual cleanup), the directories won't be recreated until the next rebuild. Mitigation: preservation persists them after the first rebuild; this is a one-time risk.
+- **Activation script doesn't run at boot** — Only runs on `nixos-rebuild switch`. If restoration from preservation is incomplete, directories won't be recreated until next rebuild. Deploy commands (migrations, passport) also only run on rebuild, which is acceptable since they mutate persistent state.

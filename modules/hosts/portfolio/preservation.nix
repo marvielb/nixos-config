@@ -21,6 +21,7 @@
 
           files = [
             "/etc/machine-id"
+            "/var/lib/jobs/database/database.sqlite"
           ];
 
           # Preserve user files

@@ -74,11 +74,39 @@
 
       system.activationScripts.jobRssStorage = {
         text = ''
-          mkdir -p ${appDir}/storage/{logs,framework/{views,cache,sessions},app}
+          mkdir -p ${appDir}/{database,storage/{logs,framework/{views,cache,sessions},app}}
           chmod -R 755 ${appDir}
           chown -R ${projectUser}:nginx ${appDir}
         '';
         deps = [ "users" ];
+      };
+
+      system.activationScripts.jobRssDeploy = {
+        text = ''
+          cd ${appPkg}/share/php/job-rss
+          export LARAVEL_STORAGE_PATH="${appDir}/storage"
+          export DB_CONNECTION=sqlite
+          export DB_DATABASE="${databaseFile}"
+          export APP_KEY="base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="
+
+          ${pkgs.php83}/bin/php artisan migrate --force
+          ${pkgs.php83}/bin/php artisan passport:keys || true
+
+          if ! ${pkgs.sqlite}/bin/sqlite3 "${databaseFile}" \
+            "SELECT COUNT(*) FROM oauth_clients WHERE name = 'Job RSS Client';" \
+            2>/dev/null | grep -q '[1-9]'; then
+            ${pkgs.php83}/bin/php artisan passport:client --client --name="Job RSS Client" --no-interaction
+          fi
+
+          if ! ${pkgs.sqlite}/bin/sqlite3 "${databaseFile}" \
+            "SELECT (SELECT COUNT(*) FROM onlinejobsph_job_listings) + (SELECT COUNT(*) FROM indeed_job_listings);" \
+            2>/dev/null | grep -q '[1-9]'; then
+            ${pkgs.php83}/bin/php artisan app:scrape || true
+          fi
+
+          chown -R ${projectUser}:nginx ${appDir}/storage
+        '';
+        deps = [ "users" "jobRssStorage" ];
       };
     };
 }
