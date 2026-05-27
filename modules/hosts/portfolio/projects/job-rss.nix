@@ -6,6 +6,7 @@
       appDir = "/var/lib/jobs";
       databaseFile = "${appDir}/database/database.sqlite";
       app = "jobs";
+      projectUser = "${app}-jobs";
     in
     {
       services.nginx = {
@@ -31,12 +32,16 @@
             fastcgi_pass unix:${config.services.phpfpm.pools.${app}.socket};
             fastcgi_index index.php;
             include ${pkgs.nginx}/conf/fastcgi.conf;
-            fastcgi_param LARAVEL_STORAGE_PATH ${appDir}/storage;
           '';
           locations."~ /\\.(?!well-known).*".extraConfig = ''
             deny all;
           '';
         };
+      };
+
+      users.users."${projectUser}" = {
+        isSystemUser = true;
+        group = config.services.nginx.group;
       };
 
       services.phpfpm.phpOptions = ''
@@ -45,7 +50,7 @@
       '';
 
       services.phpfpm.pools.${app} = {
-        user = "portfolio";
+        user = projectUser;
         group = config.services.nginx.group;
         phpPackage = pkgs.php83;
         settings = {
@@ -60,17 +65,18 @@
           "php_admin_flag[log_errors]" = true;
           "catch_workers_output" = true;
           "env[APP_KEY]" = ''"base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="'';
+          "env[DB_CONNECTION]" = ''"sqlite"'';
+          "env[DB_DATABASE]" = ''"${databaseFile}"'';
+          "env[LARAVEL_STORAGE_PATH]" = ''"${appDir}/storage"'';
         };
         phpEnv."PATH" = lib.makeBinPath [ pkgs.php83 ];
-        phpEnv.DB_CONNECTION = "sqlite";
-        phpEnv.DB_DATABASE = databaseFile;
       };
 
       systemd.services."phpfpm-${app}" = {
         preStart = ''
           mkdir -p ${appDir}/storage/{logs,framework/{views,cache,sessions},app}
           chmod -R 755 ${appDir}
-          chown -R portfolio:nginx ${appDir}
+          chown -R ${projectUser}:nginx ${appDir}
         '';
       };
     };

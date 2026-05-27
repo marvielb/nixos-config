@@ -7,7 +7,7 @@ The portfolio host uses impermanence (ZFS snapshots + tmpfs via preservation). C
 **Goals:**
 - Serve Job RSS at `jobs.marvielb.com` via nginx + PHP-FPM on the host (no container)
 - Use the Nix-built package from the `job-rss` flake as the document root
-- PHP-FPM pool `jobs` runs as `portfolio` (the host's main user, a member of the `nginx` group)
+- PHP-FPM pool `jobs` runs as dedicated `${app}-jobs` system user (member of the `nginx` group)
 - Persist the SQLite database at `/var/lib/jobs/database/database.sqlite`
 - Persist writable storage at `/var/lib/jobs/storage`
 - Follow the `lazy-email.nix` module pattern (`{ inputs, ... }: { flake.nixosModules.<name> = ...; }`)
@@ -29,13 +29,13 @@ The portfolio host uses impermanence (ZFS snapshots + tmpfs via preservation). C
 
 5. **`APP_KEY` via pool `settings."env[APP_KEY]"`** — PHP-FPM pool `settings."env[KEY]"` provides proper quoting for base64 values (unlike `phpEnv` which can mangle `=` signs). Laravel reads `$_ENV` before `.env`, so setting it in the module overrides the placeholder from the package build.
 
-6. **Storage at `/var/lib/jobs/storage/` via `fastcgi_param`** — The Nix store is read-only, so Laravel's runtime storage (logs, compiled views, cache) must live on a writable filesystem. `LARAVEL_STORAGE_PATH` is sent via nginx `fastcgi_param` (landing in `$_SERVER`) to avoid PHP-FPM env propagation issues. `/var/lib/` already lives under preservation, avoiding the bind-mount-overwrite problem with home directories.
+6. **All env vars via pool `settings."env[KEY]"`** — `APP_KEY`, `DB_CONNECTION`, `DB_DATABASE`, and `LARAVEL_STORAGE_PATH` are all set as `env[KEY]` entries in the PHP-FPM pool settings, providing proper quoting and landing in `$_ENV` where Laravel's `env()` helper checks first. This is more consistent than mixing `fastcgi_param` (nginx), `phpEnv` (NixOS option), and `env[]` (pool setting). `LARAVEL_STORAGE_PATH` was previously sent via `fastcgi_param` but moved to `env[]` for consistency — now functional with `variables_order = "EGPCS"`.
 
 7. **`preStart` on PHP-FPM service for directory creation** — `systemd.services.phpfpm-${app}.preStart` creates the storage tree and sets ownership on boot (after all mounts). This is more reliable than activation scripts (unpredictable ordering with impermanence mounts) and runs on every boot, not just `nixos-rebuild switch`.
 
-8. **PHP-FPM pool runs as `portfolio` (not a dedicated user)** — The pool runs as the host's main user for simplicity. This trades isolation for convenience — `portfolio` has passwordless sudo, so a compromised app has full access. Acceptable for this single-user deployment.
+8. **Dedicated `${app}-jobs` system user** — Created via `projectUser` variable (`users.users."${projectUser}"`) as a system user (`isSystemUser = true`) in the `nginx` group. The PHP-FPM pool runs as `projectUser:nginx`, limiting blast radius — `${app}-jobs` has no shell, no sudo, no SSH keys, unlike `portfolio` which has passwordless sudo access. Named with the app prefix to namespace users per project.
 
-9. **`variables_order = "EGPCS"`** — Ensures `$_ENV` and `$_SERVER` are populated correctly for both `env[]`-based and `fastcgi_param`-based env vars.
+9. **`variables_order = "EGPCS"`** — NixOS's PHP package defaults to `"GPCS"` (no 'E'), so `$_ENV` is never populated from the process environment. Pool `env[]` settings (like `APP_KEY`) need 'E' in `variables_order` to appear in `$_ENV`, which is where Laravel's `env()` helper checks first.
 
 ## Risks / Trade-offs
 
