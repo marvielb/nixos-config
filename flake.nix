@@ -7,6 +7,10 @@
 
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+    preservation.url = "github:nix-community/preservation";
+
     lazy-email.url = "github:marvielb/lazy-email";
   };
 

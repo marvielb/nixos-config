@@ -1,34 +1,40 @@
-{ self, ... }: {
+{ self, inputs, ... }: {
   flake.nixosModules.portfolioConfiguration = { pkgs, lib, modulesPath, ... }: {
     imports = [
-      (modulesPath + "/virtualisation/proxmox-lxc.nix")
-      self.nixosModules.lazyEmail
+      inputs.disko.nixosModules.disko
+      inputs.preservation.nixosModules.default
+      self.nixosModules.portfolioHardware
+      self.nixosModules.portfolioDisko
+      self.nixosModules.portfolioPreservation
+      # self.nixosModules.lazyEmail
     ];
 
-    nix.settings.experimental-features = [ "nix-command" "flakes" ];
+    boot.loader.systemd-boot.enable = true;
+    boot.loader.efi.canTouchEfiVariables = true;
 
-    networking.hostName = "portfolio";
-    nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+    networking.hostName = "nixos";
+    networking.networkmanager.enable = true;
 
-    nix.settings = { sandbox = false; };
-    proxmoxLXC = {
-      manageNetwork = false;
-      privileged = false;
+    time.timeZone = "Asia/Manila";
+    i18n.defaultLocale = "en_US.UTF-8";
+
+    users.users.portfolio = {
+      isNormalUser = true;
+      initialPassword = "12345";
+      extraGroups = [ "wheel" ];
+      packages = with pkgs; [
+        tree
+      ];
     };
-    security.pam.services.sshd.allowNullPassword = true;
-    services.fstrim.enable = false; # Let Proxmox host handle fstrim
-    services.openssh = {
-      enable = true;
-      openFirewall = true;
-      settings = {
-        PermitRootLogin = "yes";
-        PasswordAuthentication = true;
-        PermitEmptyPasswords = "yes";
-      };
-    };
-    system.stateVersion = lib.mkDefault "25.11";
 
-    networking.firewall.allowedTCPPorts = [ 80 443 ];
+    environment.systemPackages = with pkgs; [
+      vim
+      neovim
+    ];
+
+    services.openssh.enable = true;
+
+    system.stateVersion = "25.11";
   };
 
 }
