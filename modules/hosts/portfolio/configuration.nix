@@ -1,16 +1,10 @@
-{ self, inputs, ... }: {
+{ self, ... }: {
   flake.nixosModules.portfolioConfiguration = { pkgs, lib, modulesPath, ... }: {
     imports = [
-      inputs.disko.nixosModules.disko
-      inputs.preservation.nixosModules.default
       self.nixosModules.portfolioHardware
-      self.nixosModules.portfolioDisko
-      self.nixosModules.portfolioPreservation
-      # self.nixosModules.lazyEmail
     ];
 
-    boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
+    boot.loader.grub.enable = true;
 
     networking.hostName = "nixos";
     networking.networkmanager.enable = true;
@@ -34,7 +28,21 @@
 
     services.openssh.enable = true;
 
+    nix.settings.require-sigs = false;
+
+    security.sudo.extraRules = [
+      { users = [ "portfolio" ]; commands = [
+        { command = "ALL"; options = [ "NOPASSWD" ]; }
+      ]; }
+    ];
+
     system.stateVersion = "25.11";
+
+    # services.xserver.enable = true;
+    # services.displayManager.ly.enable = true;
+    # services.desktopManager.gnome.enable = true;
+
+    networking.firewall.enable = false;
   };
 
 }

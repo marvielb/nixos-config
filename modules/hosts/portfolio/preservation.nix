@@ -12,6 +12,10 @@
               directory = "/var/lib/nixos";
               inInitrd = true;
             }
+            "/var/lib/systemd/timers"
+            "/var/lib/nixos"
+            "/var/log"
+            "/tmp"
           ];
 
           files = [

@@ -1,1 +1,1 @@
-nixos-rebuild --target-host root@portfolio.box switch --flake .#portfolio
+nixos-rebuild --target-host portfolio@portfolio.box --sudo switch --flake .#portfolio
