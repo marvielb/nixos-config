@@ -83,30 +83,68 @@
 
       system.activationScripts.jobRssDeploy = {
         text = ''
+          echo "job-rss: running deploy setup..."
+
           cd ${appPkg}/share/php/job-rss
           export LARAVEL_STORAGE_PATH="${appDir}/storage"
           export DB_CONNECTION=sqlite
           export DB_DATABASE="${databaseFile}"
           export APP_KEY="base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="
 
-          ${pkgs.php83}/bin/php artisan migrate --force
-          ${pkgs.php83}/bin/php artisan passport:keys || true
+          PHP="${pkgs.php83}/bin/php -d variables_order=EGPCS"
 
+          echo "job-rss: running migrations..."
+          $PHP artisan migrate --force
+
+          echo "job-rss: generating passport keys..."
+          $PHP artisan passport:keys || true
+
+          echo "job-rss: checking for passport client..."
           if ! ${pkgs.sqlite}/bin/sqlite3 "${databaseFile}" \
             "SELECT COUNT(*) FROM oauth_clients WHERE name = 'Job RSS Client';" \
             2>/dev/null | grep -q '[1-9]'; then
-            ${pkgs.php83}/bin/php artisan passport:client --client --name="Job RSS Client" --no-interaction
+            echo "job-rss: creating passport client..."
+            $PHP artisan passport:client --client --name="Job RSS Client" --no-interaction
           fi
 
-          if ! ${pkgs.sqlite}/bin/sqlite3 "${databaseFile}" \
+          echo "job-rss: checking for existing job listings..."
+          JOB_COUNT=$(${pkgs.sqlite}/bin/sqlite3 "${databaseFile}" \
             "SELECT (SELECT COUNT(*) FROM onlinejobsph_job_listings) + (SELECT COUNT(*) FROM indeed_job_listings);" \
-            2>/dev/null | grep -q '[1-9]'; then
-            ${pkgs.php83}/bin/php artisan app:scrape || true
+            2>/dev/null || echo "0")
+          echo "job-rss: found $JOB_COUNT existing listings"
+          if [ "$JOB_COUNT" = "0" ]; then
+            echo "job-rss: no listings found, dispatching initial scrape..."
+            $PHP artisan app:scrape
+            echo "job-rss: scrape dispatched, queue worker will process it"
           fi
 
+          echo "job-rss: fixing storage ownership..."
           chown -R ${projectUser}:nginx ${appDir}/storage
+          echo "job-rss: deploy setup done"
         '';
         deps = [ "users" "jobRssStorage" ];
+      };
+
+      systemd.services."${app}-queue-worker" = {
+        description = "Job RSS queue worker";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "simple";
+          User = projectUser;
+          WorkingDirectory = "${appPkg}/share/php/job-rss";
+          Environment = [
+            "LARAVEL_STORAGE_PATH=${appDir}/storage"
+            "DB_CONNECTION=sqlite"
+            "DB_DATABASE=${databaseFile}"
+            "APP_KEY=base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="
+            "QUEUE_CONNECTION=database"
+            "PATH=${lib.makeBinPath [ pkgs.php83 ]}"
+          ];
+          ExecStart = "${pkgs.php83}/bin/php -d variables_order=EGPCS artisan queue:work --sleep=3 --tries=3";
+          Restart = "always";
+          RestartSec = 5;
+        };
       };
     };
 }
