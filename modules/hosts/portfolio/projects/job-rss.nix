@@ -3,7 +3,7 @@
     let
       domain = "jobs.marvielb.com";
       appPkg = inputs.job-rss.outputs.packages.${pkgs.system}.job-rss;
-      appDir = "/home/portfolio/jobs";
+      appDir = "/var/lib/jobs";
       databaseFile = "${appDir}/database/database.sqlite";
       app = "jobs";
     in
@@ -30,7 +30,8 @@
             fastcgi_split_path_info ^(.+\.php)(/.+)$;
             fastcgi_pass unix:${config.services.phpfpm.pools.${app}.socket};
             fastcgi_index index.php;
-            include ${pkgs.nginx}/conf/fastcgi_params;
+            include ${pkgs.nginx}/conf/fastcgi.conf;
+            fastcgi_param LARAVEL_STORAGE_PATH ${appDir}/storage;
           '';
           locations."~ /\\.(?!well-known).*".extraConfig = ''
             deny all;
@@ -40,6 +41,7 @@
 
       services.phpfpm.phpOptions = ''
         opcache.enable=0
+        variables_order = "EGPCS"
       '';
 
       services.phpfpm.pools.${app} = {
@@ -62,6 +64,14 @@
         phpEnv."PATH" = lib.makeBinPath [ pkgs.php83 ];
         phpEnv.DB_CONNECTION = "sqlite";
         phpEnv.DB_DATABASE = databaseFile;
+      };
+
+      systemd.services."phpfpm-${app}" = {
+        preStart = ''
+          mkdir -p ${appDir}/storage/{logs,framework/{views,cache,sessions},app}
+          chmod -R 755 ${appDir}
+          chown -R portfolio:nginx ${appDir}
+        '';
       };
     };
 }

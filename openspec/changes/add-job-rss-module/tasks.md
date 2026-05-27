@@ -16,4 +16,5 @@
 
 ## 4. Impermanence
 
-- [x] 4.1 Add `"jobs/database"` to `users.portfolio.directories` in `modules/hosts/portfolio/preservation.nix`
+- [x] 4.1 Move app state from `/home/portfolio/jobs/` to `/var/lib/jobs/`
+- [x] 4.2 Add `"/var/lib/jobs"` to preservation directories and remove user-specific entries

@@ -8,6 +8,7 @@
           directories = [
             "/etc/nixos"
             "/var/lib/bluetooth"
+            "/var/lib/jobs"
             {
               directory = "/var/lib/nixos";
               inInitrd = true;
@@ -27,7 +28,6 @@
             directories = [
               ".ssh"
               ".mozilla"
-              "jobs/database"
             ];
 
             files = [
