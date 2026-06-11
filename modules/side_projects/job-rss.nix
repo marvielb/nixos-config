@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.nixosModules.jobRss = { pkgs, config, lib, ... }:
+  flake.modules.nixos.side_projects_job-rss = { pkgs, config, lib, ... }:
     let
       domain = "jobs.marvielb.com";
       appPkg = inputs.job-rss.outputs.packages.${pkgs.system}.job-rss;
@@ -9,6 +9,11 @@
       projectUser = "${app}-jobs";
     in
     {
+      custom.persist.root = {
+        directories = [ appDir ];
+        files = [ databaseFile ];
+      };
+
       services.nginx = {
         enable = true;
         virtualHosts.${domain} = {

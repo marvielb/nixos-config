@@ -3,12 +3,13 @@ let
   mkNixos = host: { system ? "x86_64-linux", ... }: inputs.nixpkgs.lib.nixosSystem {
     inherit system;
     modules = [
-      config.flake.modules.nixos."host_${host}"
       config.flake.modules.nixos.core
+      config.flake.modules.nixos."host_${host}"
     ];
   };
 in {
   flake.nixosConfigurations = {
     vm = mkNixos "vm" {};
+    portfolio = mkNixos "portfolio" {};
   };
 }

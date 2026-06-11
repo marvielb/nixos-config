@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.nixosModules.lazyEmail = { pkgs, ... }:
+  flake.modules.nixos.side_projects_lazy-email = { pkgs, ... }:
     let
       domain = "email.marvielb.com";
       dataDir = inputs.lazy-email.outputs.packages.${pkgs.system}.lazy-email.override
