@@ -74,21 +74,6 @@
         "type": "github"
       }
     },
-    "import-tree": {
-      "locked": {
-        "lastModified": 1773693634,
-        "narHash": "sha256-BtZ2dtkBdSUnFPPFc+n0kcMbgaTxzFNPv2iaO326Ffg=",
-        "owner": "vic",
-        "repo": "import-tree",
-        "rev": "c41e7d58045f9057880b0d85e1152d6a4430dbf1",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vic",
-        "repo": "import-tree",
-        "type": "github"
-      }
-    },
     "job-rss": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -225,7 +210,6 @@
       "inputs": {
         "disko": "disko",
         "flake-parts": "flake-parts",
-        "import-tree": "import-tree",
         "job-rss": "job-rss",
         "lazy-email": "lazy-email",
         "nixpkgs": "nixpkgs_3",
