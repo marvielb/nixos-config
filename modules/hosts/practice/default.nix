@@ -10,6 +10,7 @@ in {
       gui_wm_noctalia
       gui_browsers_zen-browser
       gui_programs_keepassxc
+      gui_programs_alacritty
 
       ./_disko.nix
       ./_preservation.nix
