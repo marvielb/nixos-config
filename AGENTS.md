@@ -157,6 +157,7 @@ You can `diff` two host files and immediately see what differs.
 | `flake.modules.nixos.core` | Global config applied to every host |
 | `_` prefix on files/dirs | Private helpers, skipped by import-tree |
 | `perSystem.packages.<name>` | Build package definitions alongside system config |
+| `custom.persist` in feature module | Declare persistence where the feature lives, not in the host collector |
 
 ## Per-Feature Persistence (`custom.persist`)
 

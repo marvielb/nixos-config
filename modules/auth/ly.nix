@@ -1,5 +1,11 @@
-{ inputs, ... }: {
-  flake.modules.nixos.auth_ly = { pkgs, config, lib, ... }: {
-    services.displayManager.ly.enable = true;
+{ lib, ... }: {
+  flake.modules.nixos.auth_ly = { config, ... }: {
+    services.displayManager.ly = {
+      enable = true;
+      settings = {
+        save = false;
+        session_log = "/var/log/ly-session.log";
+      };
+    };
   };
 }

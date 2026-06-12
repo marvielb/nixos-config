@@ -18,6 +18,9 @@ vm host=host:
 deploy host=host:
     nixos-rebuild --target-host {{host}}@{{host}}.box --sudo switch --flake .#{{host}} --ask-sudo-password
 
+deploy-boot host=host:
+    nixos-rebuild --target-host {{host}}@{{host}}.box --sudo boot --flake .#{{host}} --ask-sudo-password
+
 # Evaluate the whole flake
 check:
     nix flake check

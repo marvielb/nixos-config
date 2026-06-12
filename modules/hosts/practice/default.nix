@@ -1,8 +1,8 @@
 { config, inputs, ... }@top: {
-  flake.modules.nixos.host_practice = { pkgs, lib, modulesPath, ... }: {
+  flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
       hardware_qemu
-      auth_ly
+      auth_lemurs
       wm
 
       ./_disko.nix
@@ -19,7 +19,7 @@
     users.users.practice = {
       isNormalUser = true;
       initialPassword = "123456";
-      extraGroups = [ "wheel" ];
+      extraGroups = [ "wheel" "seat" "video" ];
       packages = with pkgs; [ tree ];
     };
 
@@ -37,12 +37,6 @@
         ];
       }
     ];
-
-    services.displayManager.autoLogin = {
-      enable = true;
-      user = "practice";
-    };
-    services.displayManager.defaultSession = "niri";
 
     networking.firewall.enable = false;
   };
