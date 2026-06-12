@@ -8,7 +8,7 @@
 
     config.custom.niri.settings = {
       layout = {
-        gaps = 4;
+        gaps = 3;
         focus-ring.width = 2;
         border.off = _: { };
         default-column-width.proportion = 0.5;

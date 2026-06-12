@@ -9,17 +9,19 @@
     config.custom.niri.keybinds =
       let
         wsBinds = builtins.listToAttrs (builtins.genList (i: {
-          name = "Mod+${toString (i + 1)}";
+          name = if i + 1 == 10 then "Mod+0" else "Mod+${toString (i + 1)}";
           value.focus-workspace = i + 1;
-        }) 9);
+        }) 10);
         wsMoveBinds = builtins.listToAttrs (builtins.genList (i: {
-          name = "Mod+Shift+${toString (i + 1)}";
+          name = if i + 1 == 10 then "Mod+Shift+0" else "Mod+Shift+${toString (i + 1)}";
           value.move-window-to-workspace = i + 1;
-        }) 9);
+        }) 10);
       in
       {
-        # Terminal & launcher
-        "Mod+Return".spawn = [ "${pkgs.ghostty}/bin/ghostty" ];
+        # Terminal & app launcher
+        "Mod+Return".spawn = [ "${pkgs.foot}/bin/foot" ];
+        "Mod+D".spawn = [ "${pkgs.wofi}/bin/wofi" "--show" "drun" ];
+        "Mod+N".spawn = [ "${pkgs.thunar}/bin/thunar" ];
 
         # Close & toggles
         "Mod+Q".close-window = _: { };
@@ -27,6 +29,9 @@
         "Mod+Z".maximize-column = _: { };
         "Mod+T".toggle-column-tabbed-display = _: { };
         "Mod+O".toggle-overview = _: { };
+
+        # Logout
+        "Mod+Shift+E".spawn = [ "${pkgs.wlogout}/bin/wlogout" ];
 
         # Navigation (HJKL)
         "Mod+H".focus-column-or-monitor-left = _: { };
@@ -49,10 +54,19 @@
         "Mod+Shift+R".switch-preset-window-height = _: { };
 
         # Screenshot
-        "Print".spawn = [ "${pkgs.grim}/bin/grim" ];
-        "Alt+Print".spawn = [
+        "Print".spawn = [
           "${pkgs.bash}/bin/bash" "-c"
-          "${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\""
+          "${pkgs.grimblast}/bin/grimblast save area | ${pkgs.swappy}/bin/swappy -f -"
+        ];
+
+        # Volume
+        "XF86AudioRaiseVolume".spawn = [
+          "${pkgs.bash}/bin/bash" "-c"
+          "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
+        ];
+        "XF86AudioLowerVolume".spawn = [
+          "${pkgs.bash}/bin/bash" "-c"
+          "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
         ];
       }
       // wsBinds
