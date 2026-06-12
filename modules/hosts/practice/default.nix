@@ -8,6 +8,7 @@ in {
       auth_lemurs
       wm
       programs_noctalia
+      programs_zen-browser
 
       ./_disko.nix
       ./_preservation.nix
