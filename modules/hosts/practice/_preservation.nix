@@ -13,6 +13,7 @@ in
       "/var/lib/nixos"
       "/var/log"
       "/tmp"
+      "/etc/ssh"
     ];
 
     root.files = [

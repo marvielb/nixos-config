@@ -14,6 +14,10 @@ switch:
 vm host=host:
     nixos-rebuild build-vm --flake .#{{host}}
 
+# Deploy to a remote host
+deploy host=host:
+    nixos-rebuild --target-host {{host}}@{{host}}.box --sudo switch --flake .#{{host}} --ask-sudo-password
+
 # Evaluate the whole flake
 check:
     nix flake check

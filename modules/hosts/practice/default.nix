@@ -16,7 +16,7 @@
 
     users.users.practice = {
       isNormalUser = true;
-      initialPassword = "12345";
+      initialPassword = "123456";
       extraGroups = [ "wheel" ];
       packages = with pkgs; [ tree ];
     };
