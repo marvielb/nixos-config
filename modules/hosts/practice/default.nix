@@ -9,6 +9,7 @@ in {
       wm
       gui_wm_noctalia
       gui_browsers_zen-browser
+      gui_programs_keepassxc
 
       ./_disko.nix
       ./_preservation.nix
