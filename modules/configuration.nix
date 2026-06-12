@@ -40,6 +40,7 @@
     };
 
     config = {
+      nixpkgs.config.allowUnfree = true;
       networking.networkmanager.enable = true;
       system.stateVersion = lib.mkDefault "26.05";
     };
