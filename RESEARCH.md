@@ -98,6 +98,60 @@
 
 ---
 
+## Reference Repo Conventions (k1ng440/dotfiles.nix)
+
+General structural patterns from the primary reference repo:
+
+### Directory Layout
+
+```
+modules/
+  auth.nix              # display manager (LY), SSH, PAM, polkit — part of core
+  boot.nix               # bootloader, kernel params — part of core
+  impermanence.nix       # persistence setup — part of core
+  users.nix              # user definitions — part of core
+  configuration.nix      # core itself (master composite)
+  gui/                   # GUI infrastructure (fonts, GTK, Qt, XDG, audio tools)
+    wm/                  # compositor/window manager + coupled tools
+    browsers/
+    ...
+  services/              # backend daemons only (docker, sshd, tailscale, etc.)
+  hardware/
+  hosts/
+  shell/
+  patches/
+  neovim/
+```
+
+### Composite Catalog Entries
+
+Multiple files can register into the same `flake.modules.nixos.<name>` — NixOS merges them:
+
+- **`core`** — built from `configuration.nix` + `auth.nix` + `boot.nix` + `impermanence.nix` + `users.nix` + `unfree.nix` + `sops.nix`
+- **`gui`** — built from `gui/fonts.nix` + `gui/xdg.nix` + `gui/gtk/default.nix` + `gui/qt.nix` + `gui/audio.nix`
+- **`wm`** — built from `gui/wm/hyprland/default.nix` + `gui/wm/niri/default.nix` + `gui/wm/startup.nix` + etc.
+
+Individual GUI apps use `programs_<name>` entries (e.g., `programs_kitty`, `programs_steam`, `programs_obsidian`).
+
+### Naming Conventions
+
+| Pattern | Used for |
+|---------|----------|
+| `programs_<name>` | Individual GUI applications (kitty, steam, vscode, etc.) |
+| `gui` | Cross-cutting desktop infrastructure (fonts, theming, XDG) |
+| `wm` | Window manager / compositor + coupled tools (launcher, idle, clipboard) |
+| `host_<name>` | Host compositions |
+| `core` | Global config applied to every host (injected by mkNixos) |
+
+### Key Architectural Notes
+
+- **Boot-critical config** (auth, display manager, SSH, bootloader, impermanence, users) lives in `core`, not separate feature modules. This avoids ordering issues and keeps base system setup atomic.
+- **`gui` vs `wm` split**: Desktop infrastructure goes in the `gui` composite; the actual compositor and its tightly-coupled tools (rofi, idle lock, screenshot) go in `wm`.
+- **Top-level flat files** for concerns that don't need a subdirectory (auth, boot, users). Subdirectories indicate a family of related features.
+- **`services/` is backend daemons only** — no display managers, no GUI services.
+
+---
+
 ## Consensus Pattern
 
 `flake.nix` is a 3-6 line entry point → delegates to `import-tree ./modules` → every `.nix` file is a flake-parts module → modules export to `config.flake.modules.{nixos,darwin,homeManager}.*` → host configs compose from these deferred modules. Files/dirs prefixed with `_` are ignored (used for helpers).

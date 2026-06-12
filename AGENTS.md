@@ -244,6 +244,12 @@ just fmt            # format all nix files
 just update         # update flake.lock
 ```
 
+## Before Adding a New Module
+
+1. Check `RESEARCH.md` for cached findings on the relevant pattern/feature
+2. If not found, check the reference repo (https://github.com/k1ng440/dotfiles.nix) for inspiration on structure, conventions, and persistence
+3. Append new general findings to `RESEARCH.md` so they're cached for future sessions
+
 ## References
 
 - Blog: https://iampavel.dev/blog/nixos-module-organization
