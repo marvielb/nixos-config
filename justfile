@@ -1,6 +1,6 @@
 # NixOS Config — Build helpers
 
-host := "vm"
+host := "practice"
 
 # Build the system (dry run, doesn't switch)
 build:

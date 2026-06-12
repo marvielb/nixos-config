@@ -1,0 +1,44 @@
+{ config, inputs, ... }@top: {
+  flake.modules.nixos.host_practice = { pkgs, lib, modulesPath, ... }: {
+    imports = with top.config.flake.modules.nixos; [
+      inputs.disko.nixosModules.disko
+      inputs.preservation.nixosModules.default
+
+      hardware_qemu
+
+      ./_disko.nix
+      ./_preservation.nix
+    ];
+
+    boot.loader.grub.enable = true;
+
+    networking.hostName = "nixos";
+
+    time.timeZone = "Asia/Manila";
+    i18n.defaultLocale = "en_US.UTF-8";
+
+    users.users.practice = {
+      isNormalUser = true;
+      initialPassword = "12345";
+      extraGroups = [ "wheel" ];
+      packages = with pkgs; [ tree ];
+    };
+
+    environment.systemPackages = with pkgs; [ vim neovim ];
+
+    services.openssh.enable = true;
+
+    nix.settings.require-sigs = false;
+
+    security.sudo.extraRules = [
+      {
+        users = [ "practice" ];
+        commands = [
+          { command = "ALL"; options = [ "NOPASSWD" ]; }
+        ];
+      }
+    ];
+
+    networking.firewall.enable = false;
+  };
+}

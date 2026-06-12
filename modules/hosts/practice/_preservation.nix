@@ -18,7 +18,7 @@ in
       "/etc/machine-id"
     ];
 
-    users.portfolio = {
+    users.practice = {
       directories = [ ".ssh" ];
       files = [ ];
     };

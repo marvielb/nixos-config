@@ -9,7 +9,7 @@ let
   };
 in {
   flake.nixosConfigurations = {
-    vm = mkNixos "vm" {};
+    practice = mkNixos "practice" {};
     portfolio = mkNixos "portfolio" {};
   };
 }
