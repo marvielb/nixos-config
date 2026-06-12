@@ -1,7 +1,7 @@
 { inputs, lib, ... }: let
   inherit (lib) types;
 in {
-  flake.modules.nixos.programs_noctalia = { pkgs, config, lib, ... }: let
+  flake.modules.nixos.gui_wm_noctalia = { pkgs, config, lib, ... }: let
     inherit (lib) types;
     cfg = config.custom.programs.noctalia;
 

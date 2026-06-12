@@ -7,8 +7,8 @@ in {
       hardware_qemu
       auth_lemurs
       wm
-      programs_noctalia
-      programs_zen-browser
+      gui_wm_noctalia
+      gui_browsers_zen-browser
 
       ./_disko.nix
       ./_preservation.nix
