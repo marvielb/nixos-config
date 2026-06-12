@@ -1,9 +1,13 @@
-{ config, inputs, ... }@top: {
+{ config, inputs, lib, ... }@top:
+let
+  inherit (lib) mkAfter;
+in {
   flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
       hardware_qemu
       auth_lemurs
       wm
+      programs_noctalia
 
       ./_disko.nix
       ./_preservation.nix
@@ -15,6 +19,17 @@
 
     time.timeZone = "Asia/Manila";
     i18n.defaultLocale = "en_US.UTF-8";
+
+    custom = {
+      programs.noctalia = {
+        enable = true;
+        users = [ "practice" ];
+      };
+
+      niri.startup = mkAfter [
+        [ "noctalia-start" ]
+      ];
+    };
 
     users.users.practice = {
       isNormalUser = true;

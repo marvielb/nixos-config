@@ -163,6 +163,10 @@ You can `diff` two host files and immediately see what differs.
 
 Each feature module declares what files/directories it needs to persist, not a monolithic config:
 
+> **Only use persistence for runtime state** — caches, databases, generated data, runtime tokens.
+> Never persist declarative config files (e.g. `settings.json`, `config.toml`).
+> Config files should be generated declaratively via `environment.etc` or similar — not written at runtime and then persisted.
+
 ```nix
 # modules/services/job-rss.nix
 { inputs, ... }: {
@@ -233,6 +237,15 @@ Core (`configuration.nix`) declares the `options.custom.persist` submodule with
 3. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
 4. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
 5. Generate `hardware-configuration.nix` via `nixos-generate-config`
+
+## Git — Must Stage Before Testing
+
+Nix flakes read from the **git index**, not the working tree. Any new or modified `.nix` file
+must be `git add`-ed before `nix flake check` / `nix build` will see it.
+
+```bash
+git add modules/path/to/new-file.nix
+```
 
 ## Build Commands
 
