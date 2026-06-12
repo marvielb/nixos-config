@@ -1,9 +1,6 @@
 { config, inputs, ... }@top: {
   flake.modules.nixos.host_practice = { pkgs, lib, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
-      inputs.disko.nixosModules.disko
-      inputs.preservation.nixosModules.default
-
       hardware_qemu
 
       ./_disko.nix

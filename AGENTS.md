@@ -101,6 +101,7 @@ A `mkNixos` function assembles `nixosConfigurations` from the catalog:
 let
   mkNixos = host: { system ? "x86_64-linux", ... }: inputs.nixpkgs.lib.nixosSystem {
     inherit system;
+    specialArgs = { inherit inputs; };
     modules = [
       config.flake.modules.nixos.core
       config.flake.modules.nixos."host_${host}"
@@ -125,10 +126,6 @@ Each host declares what it wants by importing catalog entries:
 { config, inputs, ... }@top: {
   flake.modules.nixos.host_<hostname> = { config, pkgs, ... }: {
     imports = with top.config.flake.modules.nixos; [
-      # External flake modules (wired per-host, not in mkNixos)
-      inputs.disko.nixosModules.disko
-      inputs.preservation.nixosModules.default
-
       # Catalog features
       programs_neovim
       programs_git
@@ -144,9 +141,10 @@ Each host declares what it wants by importing catalog entries:
 
 Notes:
 - `core` is **not** imported here — `mkNixos` injects it automatically. Importing it in the host too causes option re-declaration errors.
-- External flake modules (disko, preservation) are wired per-host to avoid eval cost for hosts that don't use them.
+- External flake modules (disko, preservation) are imported inside `_disko.nix` and `_preservation.nix` respectively, making each private helper self-contained.
 - Host-specific config (users, timezone, ssh, firewall) goes inline in the NixOS module body.
 - Private helpers (`_`-prefixed files like `_disko.nix`, `_preservation.nix`) are imported via relative path. They're plain NixOS modules, not flake-parts modules, so import-tree skips them.
+- `specialArgs = { inherit inputs; }` in `mkNixos` makes `inputs` available to all NixOS modules, including private helpers.
 
 You can `diff` two host files and immediately see what differs.
 
@@ -183,8 +181,10 @@ The host's `_preservation.nix` acts as a **collector**, mapping the merged
 
 ```nix
 # modules/hosts/<hostname>/_preservation.nix
-{ config, lib, ... }:
+{ inputs, config, lib, ... }:
 let inherit (lib) mapAttrs; in {
+  imports = [ inputs.preservation.nixosModules.default ];
+
   custom.persist = {
     root.directories = [
       "/etc/nixos"
@@ -230,7 +230,7 @@ Core (`configuration.nix`) declares the `options.custom.persist` submodule with
 1. Create `modules/hosts/<hostname>/default.nix`
 2. Add `flake.modules.nixos.host_<hostname>` with imports from the catalog
 3. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
-4. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host)
+4. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
 5. Generate `hardware-configuration.nix` via `nixos-generate-config`
 
 ## Build Commands

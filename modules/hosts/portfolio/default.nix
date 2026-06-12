@@ -1,9 +1,6 @@
 { config, inputs, ... }@top: {
   flake.modules.nixos.host_portfolio = { pkgs, lib, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
-      inputs.disko.nixosModules.disko
-      inputs.preservation.nixosModules.default
-
       hardware_qemu
       side_projects_lazy-email
       side_projects_job-rss
