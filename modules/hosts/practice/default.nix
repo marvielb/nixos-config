@@ -1,23 +1,9 @@
 { config, inputs, ... }@top: {
-  flake.modules.nixos.host_practice = { pkgs, lib, modulesPath, ... }: let
-    shellSession = pkgs.runCommand "shell-session" {
-      passthru.providedSessions = [ "shell" ];
-      preferLocalBuild = true;
-    } ''
-      mkdir -p $out/share/wayland-sessions $out/share/xsessions
-      cat > $out/share/wayland-sessions/shell.desktop <<EOF
-      [Desktop Entry]
-      Name=Shell
-      Comment=Minimal shell session
-      Exec=${pkgs.bash}/bin/bash
-      Type=Application
-      EOF
-      cp $out/share/wayland-sessions/shell.desktop $out/share/xsessions/shell.desktop
-    '';
-  in {
+  flake.modules.nixos.host_practice = { pkgs, lib, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
       hardware_qemu
       auth_ly
+      wm
 
       ./_disko.nix
       ./_preservation.nix
@@ -56,8 +42,7 @@
       enable = true;
       user = "practice";
     };
-    services.displayManager.defaultSession = "shell";
-    services.displayManager.sessionPackages = [ shellSession ];
+    services.displayManager.defaultSession = "niri";
 
     networking.firewall.enable = false;
   };

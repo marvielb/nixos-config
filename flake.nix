@@ -4,7 +4,10 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
+    wrappers = {
+      url = "github:BirdeeHub/nix-wrapper-modules";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
@@ -23,7 +26,7 @@
           (file: file.hasExt "nix" && !(nixpkgs.lib.hasPrefix "_" file.name))
           path);
     in
-    flake-parts.lib.mkFlake { inherit inputs; } {
+    flake-parts.lib.mkFlake { inherit inputs; }     {
       imports = import-tree ./modules;
     };
 }

@@ -152,6 +152,66 @@ Individual GUI apps use `programs_<name>` entries (e.g., `programs_kitty`, `prog
 
 ---
 
+## nix-wrapper-modules (`github:BirdeeHub/nix-wrapper-modules`)
+
+Used by the reference repo to generate KDL configs for niri from structured Nix attrsets.
+
+### Flake Input Pattern
+
+```nix
+wrappers = {
+  url = "github:BirdeeHub/nix-wrapper-modules";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+```
+
+Accessed as `inputs.wrappers.wrappers.<name>.wrap` (e.g., `inputs.wrappers.wrappers.niri.wrap`).
+
+### Niri Wrapper Usage
+
+```nix
+let
+  niri' = inputs.wrappers.wrappers.niri.wrap {
+    inherit pkgs;
+    package = pkgs.niri;
+    v2-settings = true;  # deprecated, v2 is now default
+    settings = { ... };  # structured attrs → KDL config
+  };
+in {
+  programs.niri = {
+    enable = true;
+    package = niri';
+  };
+}
+```
+
+### Settings Format
+
+The wrapper's `settings` option accepts these typed sub-options (plus freeform attrs):
+
+- `binds` — `attrsRecursive` — keybinding definitions
+- `layout` — `attrsRecursive` — gaps, focus ring, borders, column widths
+- `spawn-at-startup` — `listOf (either str (listOf str))` — startup commands
+- `spawn-sh-at-startup` — `listOf str` — shell startup commands
+- `window-rules` / `layer-rules` — `listOf attrs` — window/layer matching rules
+- `workspaces` — `attrsOf (nullOr anything)` — named workspace definitions
+- `outputs` — `attrsRecursive` — monitor output config
+- `extraConfig` — `lines` — raw KDL appended at end
+
+Functions (`_: { }`) in attrs produce parameterless KDL nodes (e.g., `border off`).
+
+### Config File Generation
+
+The wrapper generates `<binName>-config.kdl` with content from `wlib.toKdl` and sets `NIRI_CONFIG` env var to point at it. It also validates the config with `niri validate` at build time (unless `disableConfigValidation` is set).
+
+### Other Options
+
+- `"config.kdl".content` — override the entire generated config with raw KDL
+- `extraSettings` — list of additional KDL node attrs (for repeated definitions)
+- `disableConfigHotReload` — skip hot-reload on rebuild (requires niri ≥ 26.04)
+
+---
+
 ## Consensus Pattern
 
 `flake.nix` is a 3-6 line entry point → delegates to `import-tree ./modules` → every `.nix` file is a flake-parts module → modules export to `config.flake.modules.{nixos,darwin,homeManager}.*` → host configs compose from these deferred modules. Files/dirs prefixed with `_` are ignored (used for helpers).
