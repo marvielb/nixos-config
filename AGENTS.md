@@ -52,7 +52,8 @@ modules/
     nixos.nix                 # mkNixos wiring function
     <hostname>/
       default.nix             # host picks features from the catalog
-      hardware-configuration.nix
+      _disko.nix              # per-machine disk layout (private helper)
+      _preservation.nix       # per-machine persistence collector (private helper)
   programs/
     neovim.nix                # exports flake.modules.nixos.programs_neovim
     ...
@@ -60,7 +61,14 @@ modules/
     docker.nix                # exports flake.modules.nixos.services_docker
     ...
   hardware/
-    nvidia.nix                # exports flake.modules.nixos.hardware_nvidia
+    qemu-vm.nix               # exports flake.modules.nixos.hardware_qemu
+    ...
+  storage/
+    disko.nix                 # exports flake.modules.nixos.storage_disko
+    ...
+  side_projects/
+    lazy-email.nix            # exports flake.modules.nixos.side_projects_lazy-email
+    job-rss.nix               # exports flake.modules.nixos.side_projects_job-rss
     ...
 ```
 
@@ -94,9 +102,8 @@ let
   mkNixos = host: { system ? "x86_64-linux", ... }: inputs.nixpkgs.lib.nixosSystem {
     inherit system;
     modules = [
-      config.flake.modules.nixos."host_${host}"
       config.flake.modules.nixos.core
-      # shared modules go here
+      config.flake.modules.nixos."host_${host}"
     ];
   };
 in {
@@ -115,26 +122,31 @@ Each host declares what it wants by importing catalog entries:
 
 ```nix
 # modules/hosts/<hostname>/default.nix
-{ config, ... }@top: {
-  flake.modules.nixos.host_<hostname> = { config, ... }: {
+{ config, inputs, ... }@top: {
+  flake.modules.nixos.host_<hostname> = { config, pkgs, ... }: {
     imports = with top.config.flake.modules.nixos; [
-      # Core
-      core
+      # External flake modules (wired per-host, not in mkNixos)
+      inputs.disko.nixosModules.disko
+      inputs.preservation.nixosModules.default
 
-      # Programs
+      # Catalog features
       programs_neovim
       programs_git
+      hardware_qemu
 
-      # Services
-      services_docker
-      services_flatpak
-
-      # Hardware
-      hardware_nvidia
+      # Private host-specific modules (imported by relative path)
+      ./_disko.nix
+      ./_preservation.nix
     ];
   };
 }
 ```
+
+Notes:
+- `core` is **not** imported here — `mkNixos` injects it automatically. Importing it in the host too causes option re-declaration errors.
+- External flake modules (disko, preservation) are wired per-host to avoid eval cost for hosts that don't use them.
+- Host-specific config (users, timezone, ssh, firewall) goes inline in the NixOS module body.
+- Private helpers (`_`-prefixed files like `_disko.nix`, `_preservation.nix`) are imported via relative path. They're plain NixOS modules, not flake-parts modules, so import-tree skips them.
 
 You can `diff` two host files and immediately see what differs.
 
@@ -148,6 +160,64 @@ You can `diff` two host files and immediately see what differs.
 | `_` prefix on files/dirs | Private helpers, skipped by import-tree |
 | `perSystem.packages.<name>` | Build package definitions alongside system config |
 
+## Per-Feature Persistence (`custom.persist`)
+
+Each feature module declares what files/directories it needs to persist, not a monolithic config:
+
+```nix
+# modules/services/job-rss.nix
+{ inputs, ... }: {
+  flake.modules.nixos.side_projects_job-rss = { pkgs, config, lib, ... }: {
+    custom.persist.root = {
+      directories = [ "/var/lib/jobs" ];
+      files = [ "/var/lib/jobs/database/database.sqlite" ];
+    };
+
+    services.nginx = { /* ... */ };
+  };
+}
+```
+
+The host's `_preservation.nix` acts as a **collector**, mapping the merged
+`config.custom.persist` into `preservation.preserveAt`:
+
+```nix
+# modules/hosts/<hostname>/_preservation.nix
+{ config, lib, ... }:
+let inherit (lib) mapAttrs; in {
+  custom.persist = {
+    root.directories = [
+      "/etc/nixos"
+      { directory = "/var/lib/nixos"; inInitrd = true; }
+      "/var/lib/systemd/timers"
+      "/var/log"
+      "/tmp"
+    ];
+    root.files = [ "/etc/machine-id" ];
+    users.<username> = {
+      directories = [ ".ssh" ];
+      files = [ ];
+    };
+  };
+
+  preservation = {
+    enable = true;
+    preserveAt."/persistent" = {
+      directories = config.custom.persist.root.directories;
+      files = config.custom.persist.root.files;
+      users = mapAttrs (name: p: {
+        directories = p.directories;
+        files = p.files;
+      }) config.custom.persist.users;
+    };
+  };
+}
+```
+
+Core (`configuration.nix`) declares the `options.custom.persist` submodule with
+`root.directories` (accepts strings or `{ directory, inInitrd? }` attrsets),
+`root.files`, and `users.<name>.{directories,files}`.
+
 ## Adding a New Feature
 
 1. Create `modules/programs/<name>.nix` (or `/services/`, `/hardware/`, etc.)
@@ -160,7 +230,8 @@ You can `diff` two host files and immediately see what differs.
 1. Create `modules/hosts/<hostname>/default.nix`
 2. Add `flake.modules.nixos.host_<hostname>` with imports from the catalog
 3. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
-4. Generate `hardware-configuration.nix` via `nixos-generate-config`
+4. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host)
+5. Generate `hardware-configuration.nix` via `nixos-generate-config`
 
 ## Build Commands
 
@@ -180,3 +251,4 @@ just update         # update flake.lock
 - flake-parts: https://flake.parts
 - Dendritic guide: https://github.com/Doc-Steve/dendritic-design-with-flake-parts
 - `import-tree` docs: https://github.com/vic/import-tree
+- Per-feature persistence pattern: https://github.com/k1ng440/dotfiles.nix/blob/master/modules/impermanence.nix
