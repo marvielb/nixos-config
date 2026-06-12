@@ -28,4 +28,17 @@
       targets.qt.enable = true;
     };
   };
+
+  flake.modules.nixos.stylix = { pkgs, ... }: {
+    imports = [ inputs.stylix.nixosModules.stylix ];
+
+    fonts.packages = with pkgs; [
+      nerd-fonts.jetbrains-mono
+      inter
+      noto-fonts
+      noto-fonts-color-emoji
+    ];
+
+    stylix.targets.qt.enable = true;
+  };
 }

@@ -4,6 +4,7 @@ let
 in {
   flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
+      stylix
       hardware_qemu
       auth_lemurs
       wm
