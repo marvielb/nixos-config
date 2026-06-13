@@ -19,6 +19,16 @@
               default = [];
             };
           };
+          home = {
+            directories = lib.mkOption {
+              type = types.listOf types.str;
+              default = [];
+            };
+            files = lib.mkOption {
+              type = types.listOf types.str;
+              default = [];
+            };
+          };
           users = lib.mkOption {
             type = types.attrsOf (types.submodule {
               options = {

@@ -13,6 +13,7 @@ in
       gui_wm_noctalia
       gui_browsers_zen-browser
       gui_thunar
+      programs_lazyvim
 
       ./_disko.nix
       ./_preservation.nix
@@ -33,6 +34,7 @@ in
         programs_foot
         programs_lazygit
         programs_keepassxc
+        programs_lazyvim
       ];
     };
 
@@ -54,7 +56,7 @@ in
       packages = with pkgs; [ tree ];
     };
 
-    environment.systemPackages = with pkgs; [ vim neovim ];
+    environment.systemPackages = with pkgs; [ vim ];
 
     services.openssh.enable = true;
 

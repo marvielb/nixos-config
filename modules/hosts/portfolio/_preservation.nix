@@ -33,8 +33,8 @@ in
       files = config.custom.persist.root.files;
       users = mapAttrs
         (name: p: {
-          directories = p.directories;
-          files = p.files;
+          directories = p.directories ++ config.custom.persist.home.directories;
+          files = p.files ++ config.custom.persist.home.files;
         })
         config.custom.persist.users;
     };
