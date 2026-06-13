@@ -48,12 +48,18 @@ Without this, defining `flake.modules.nixos.*` in multiple files produces:
 modules/
   flake-parts.nix             # systems, perSystem, overlays, pkgs
   configuration.nix           # flake.modules.nixos.core — global NixOS config
+  home-manager.nix            # flake.modules.nixos.home-manager — enables HM globally
   hosts/
     nixos.nix                 # mkNixos wiring function
     <hostname>/
-      default.nix             # host picks features from the catalog
+      default.nix             # host picks from both catalogs + HM user block
       _disko.nix              # per-machine disk layout (private helper)
       _preservation.nix       # per-machine persistence collector (private helper)
+  home/
+    programs/                 # flake.modules.homeManager.* catalog entries
+      alacritty.nix
+      lazygit.nix
+      keepassxc.nix
   programs/
     neovim.nix                # exports flake.modules.nixos.programs_neovim
     ...
@@ -74,7 +80,11 @@ modules/
 
 ## The Catalog Pattern
 
-Every feature module registers into the catalog via `flake.modules.nixos.<name>`:
+Feature modules register into one of two catalogs depending on their domain:
+
+### NixOS Catalog (`flake.modules.nixos.*`)
+
+For system-level features (services, hardware, window managers, boot config):
 
 ```nix
 # modules/programs/neovim.nix
@@ -91,6 +101,75 @@ Every feature module registers into the catalog via `flake.modules.nixos.<name>`
 
 The module does **nothing** by default — it only makes itself available as
 `programs_neovim` in the catalog. No system impact until a host imports it.
+
+### Home Manager Catalog (`flake.modules.homeManager.*`)
+
+For user-level app configs (alacritty, lazygit, keepassxc, etc.):
+
+```nix
+# modules/home/programs/alacritty.nix
+{ ... }: {
+  flake.modules.homeManager.programs_alacritty = { ... }: {
+    programs.alacritty.enable = true;
+  };
+}
+```
+
+Same principle — registered in the catalog, inert until a host's HM user block imports it.
+
+## Home Manager Integration
+
+Home Manager is integrated as a NixOS module, not standalone. A single global module
+enables it for all hosts:
+
+```nix
+# modules/home-manager.nix
+{ inputs, ... }: {
+  flake.modules.nixos.home-manager = { ... }: {
+    imports = [ inputs.home-manager.nixosModules.home-manager ];
+
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+    };
+  };
+}
+```
+
+Per-user HM configuration lives in each host's `default.nix` under
+`home-manager.users.<name>`. App configs are imported from the HM catalog via
+`top.config.flake.modules.homeManager`:
+
+```nix
+# modules/hosts/<hostname>/default.nix
+home-manager.users.<username> = { osConfig, ... }: {
+  home.stateVersion = osConfig.system.stateVersion;
+
+  imports = with top.config.flake.modules.homeManager; [
+    stylix
+    programs_alacritty
+    programs_lazygit
+  ];
+};
+```
+
+Key details:
+- `osConfig` is the NixOS config — available in HM blocks via `home-manager.nixosModules`
+- `home.stateVersion` **always** derives from `osConfig.system.stateVersion` to avoid
+  version drift. Never hardcode it.
+- `system.stateVersion = lib.mkDefault "26.05"` lives in `configuration.nix` as the
+  single source of truth.
+- Stylix's HM module (`stylix.homeModules.stylix`) sets `nixpkgs.overlays` which
+  conflicts with `useGlobalPkgs`. The internal `nixpkgs.overlays = lib.mkForce null`
+  in `modules/stylix.nix` clears them — the NixOS stylix module already provides them
+  at the system level.
+
+### niri: Exception — Wrapper, Not HM
+
+niri does **not** use HM because there's no `programs.niri` HM module. Instead it uses
+`inputs.wrappers.wrappers.niri.wrap` (BirdeeHub/nix-wrapper-modules) which provides
+typed KDL config generation from structured Nix attrsets. The niri wrapper is
+registered in the NixOS catalog (`flake.modules.nixos.wm`) and stays as-is.
 
 ## Host Wiring (`modules/hosts/nixos.nix`)
 
@@ -119,22 +198,38 @@ works on any NixOS config with zero special wiring.
 
 ## Host Configs Pick from the Catalog
 
-Each host declares what it wants by importing catalog entries:
+Each host declares what it wants by importing from both catalogs:
 
 ```nix
 # modules/hosts/<hostname>/default.nix
-{ config, inputs, ... }@top: {
-  flake.modules.nixos.host_<hostname> = { config, pkgs, ... }: {
+{ config, inputs, lib, ... }@top: {
+  flake.modules.nixos.host_<hostname> = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
-      # Catalog features
-      programs_neovim
-      programs_git
+      # NixOS catalog features
+      stylix
+      home-manager
       hardware_qemu
+      wm
 
       # Private host-specific modules (imported by relative path)
       ./_disko.nix
       ./_preservation.nix
     ];
+
+    # Host-specific NixOS config
+    users.users.<username> = { ... };
+
+    # Home Manager user block
+    home-manager.users.<username> = { osConfig, ... }: {
+      home.stateVersion = osConfig.system.stateVersion;
+
+      imports = with top.config.flake.modules.homeManager; [
+        stylix
+        programs_alacritty
+        programs_lazygit
+        programs_keepassxc
+      ];
+    };
   };
 }
 ```
@@ -152,9 +247,13 @@ You can `diff` two host files and immediately see what differs.
 
 | Convention | Rule |
 |---|---|
-| `flake.modules.nixos.<name>` | Register a feature for the catalog |
+| `flake.modules.nixos.<name>` | Register a NixOS feature for the catalog |
+| `flake.modules.homeManager.<name>` | Register a Home Manager feature for the catalog |
 | `flake.modules.nixos.host_<name>` | Host composition (what the machine includes) |
 | `flake.modules.nixos.core` | Global config applied to every host |
+| `flake.modules.nixos.home-manager` | Enables HM NixOS module globally |
+| `home-manager.users.<name>` in host | Per-user HM config block |
+| `home.stateVersion` | Derive from `osConfig.system.stateVersion` — never hardcode |
 | `_` prefix on files/dirs | Private helpers, skipped by import-tree |
 | `perSystem.packages.<name>` | Build package definitions alongside system config |
 | `custom.persist` in feature module | Declare persistence where the feature lives, not in the host collector |
@@ -196,7 +295,6 @@ let inherit (lib) mapAttrs; in {
       { directory = "/var/lib/nixos"; inInitrd = true; }
       "/var/lib/systemd/timers"
       "/var/log"
-      "/tmp"
     ];
     root.files = [ "/etc/machine-id" ];
     users.<username> = {
@@ -225,18 +323,35 @@ Core (`configuration.nix`) declares the `options.custom.persist` submodule with
 
 ## Adding a New Feature
 
-1. Create `modules/programs/<name>.nix` (or `/services/`, `/hardware/`, etc.)
-2. Add `flake.modules.nixos.programs_<name> = { ... }` with your config
-3. Add `programs_<name>` to each host's imports that needs it
+Two paths depending on the feature's domain:
+
+### Home Manager Feature (user-level app config)
+
+If the feature has a Home Manager module (alacritty, lazygit, keepassxc, etc.):
+
+1. Create `modules/home/<category>/<name>.nix`
+2. Add `flake.modules.homeManager.<name> = { ... }` with `programs.<name>` settings
+3. Add `<name>` to each host's `home-manager.users.<username>.imports` via `top.config.flake.modules.homeManager`
+4. Done — no edits to `flake.nix` or import lists
+
+### NixOS Feature (system-level)
+
+If the feature is system-level (services, hardware, window managers, boot config):
+
+1. Create `modules/<category>/<name>.nix` (or `/services/`, `/hardware/`, etc.)
+2. Add `flake.modules.nixos.<name> = { ... }` with your NixOS config
+3. Add `<name>` to each host's NixOS `imports`
 4. Done — no edits to `flake.nix` or import lists
 
 ## Adding a New Host
 
 1. Create `modules/hosts/<hostname>/default.nix`
-2. Add `flake.modules.nixos.host_<hostname>` with imports from the catalog
-3. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
-4. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
-5. Generate `hardware-configuration.nix` via `nixos-generate-config`
+2. Add `flake.modules.nixos.host_<hostname>` with imports from both catalogs
+3. Add `home-manager.users.<username>` block, importing desired HM catalog entries
+4. Derive `home.stateVersion` from `osConfig.system.stateVersion`
+5. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
+6. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
+7. Generate `hardware-configuration.nix` via `nixos-generate-config`
 
 ## Git — Must Stage Before Testing
 
@@ -251,12 +366,15 @@ git add modules/path/to/new-file.nix
 
 ```bash
 just build          # build the system (dry run without switching)
-just switch         # build + activate
+just switch         # build + activate (also applies HM config)
 just vm <hostname>  # build a VM for testing (nixos-rebuild build-vm)
 just check          # nix flake check
 just fmt            # format all nix files
 just update         # update flake.lock
 ```
+
+HM config is bundled into the NixOS build — `just switch` applies both system and
+user configs in one command. No separate `home-manager switch` needed.
 
 ## Before Adding a New Module
 
@@ -272,3 +390,4 @@ just update         # update flake.lock
 - Dendritic guide: https://github.com/Doc-Steve/dendritic-design-with-flake-parts
 - `import-tree` docs: https://github.com/vic/import-tree
 - Per-feature persistence pattern: https://github.com/k1ng440/dotfiles.nix/blob/master/modules/impermanence.nix
+- Home Manager: https://nix-community.github.io/home-manager/
