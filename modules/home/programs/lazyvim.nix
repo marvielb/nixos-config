@@ -11,21 +11,10 @@
     programs.lazyvim = {
       enable = true;
       plugins = {
-        "mini-base16" = ''
-          return {
-            "nvim-mini/mini.base16",
-            lazy = false,
-            priority = 1000,
-          }
-        '';
-        "disable-lazyvim-colorscheme" = ''
-          return {
-            "LazyVim/LazyVim",
-            opts = {
-              colorscheme = function() end,
-            },
-          }
-        '';
+        colorscheme = inputs.lazyvim.lib.lazyConfig {
+          plugin = "LazyVim/LazyVim";
+          opts = { colorscheme = "catppuccin-mocha"; };
+        };
       };
     };
   };
