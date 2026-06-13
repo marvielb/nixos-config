@@ -8,6 +8,13 @@
       enable = true;
       base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
+      icons = {
+        enable = true;
+        package = pkgs.papirus-icon-theme;
+        dark = "Papirus-Dark";
+        light = "Papirus-Light";
+      };
+
       fonts = {
         monospace = {
           package = pkgs.nerd-fonts.jetbrains-mono;
@@ -33,6 +40,8 @@
 
   flake.modules.nixos.stylix = { pkgs, ... }: {
     imports = [ inputs.stylix.nixosModules.stylix ];
+
+    environment.systemPackages = with pkgs; [ papirus-icon-theme ];
 
     fonts.packages = with pkgs; [
       nerd-fonts.jetbrains-mono
