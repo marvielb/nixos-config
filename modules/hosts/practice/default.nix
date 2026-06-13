@@ -39,11 +39,6 @@ in
     };
 
     custom = {
-      programs.noctalia = {
-        enable = true;
-        users = [ "practice" ];
-      };
-
       niri.startup = mkAfter [
         [ "noctalia-start" ]
       ];

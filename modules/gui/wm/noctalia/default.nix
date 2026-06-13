@@ -1,10 +1,5 @@
-{ inputs, lib, ... }: let
-  inherit (lib) types;
-in {
+{ inputs, lib, ... }: {
   flake.modules.nixos.gui_wm_noctalia = { pkgs, config, lib, ... }: let
-    inherit (lib) types;
-    cfg = config.custom.programs.noctalia;
-
     noctalia-shell = let
       base = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
         calendarSupport = true;
@@ -78,57 +73,33 @@ in {
       '';
     };
   in {
-    options.custom.programs.noctalia = {
-      enable = lib.mkEnableOption "noctalia";
+    environment.systemPackages = [
+      noctalia-shell
+      noctalia-reload
+      noctalia-start
+      noctalia-ipc
+      noctalia-copy
+      noctalia-diff
+    ];
 
-      users = lib.mkOption {
-        type = types.listOf types.str;
-        default = [];
-        description = "Users whose noctalia config/cache dirs are persisted.";
-      };
+    custom.persist.home.directories = [
+      ".config/noctalia"
+      ".cache/noctalia"
+    ];
 
-      settingsReducers = lib.mkOption {
-        type = types.listOf types.raw;
-        default = [];
-        description = "Reducers applied to default settings.json.";
-      };
-    };
-
-    config = lib.mkIf cfg.enable {
-      environment.systemPackages = [
-        noctalia-shell
-        noctalia-reload
-        noctalia-start
-        noctalia-ipc
-        noctalia-copy
-        noctalia-diff
+    custom.niri.settings = {
+      layer-rules = [
+        {
+          matches = [ { namespace = "^noctalia-background-.*$"; } ];
+          background-effect.blur = true;
+        }
       ];
-
-      custom.persist.users = lib.listToAttrs (map (user: {
-        name = user;
-        value = {
-          directories = [
-            ".config/noctalia"
-            ".cache/noctalia"
-          ];
-          files = [];
-        };
-      }) cfg.users);
-
-      custom.niri.settings = {
-        layer-rules = [
-          {
-            matches = [ { namespace = "^noctalia-background-.*$"; } ];
-            background-effect.blur = true;
-          }
-        ];
-        window-rules = [
-          {
-            matches = [ { app-id = "^dev.noctalia.noctalia-qs$"; } ];
-            background-effect.blur = true;
-          }
-        ];
-      };
+      window-rules = [
+        {
+          matches = [ { app-id = "^dev.noctalia.noctalia-qs$"; } ];
+          background-effect.blur = true;
+        }
+      ];
     };
   };
 }
