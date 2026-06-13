@@ -12,7 +12,6 @@ in
       "/var/lib/systemd/timers"
       "/var/lib/nixos"
       "/var/log"
-      "/tmp"
       "/etc/ssh"
     ];
 
