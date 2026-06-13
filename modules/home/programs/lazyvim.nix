@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.modules.homeManager.programs_lazyvim = { ... }: {
+  flake.modules.homeManager.programs_lazyvim = { osConfig, ... }: {
     imports = [ inputs.lazyvim.homeManagerModules.default ];
 
     stylix.targets.neovim.transparentBackground = {
@@ -13,7 +13,7 @@
       plugins = {
         colorscheme = inputs.lazyvim.lib.lazyConfig {
           plugin = "LazyVim/LazyVim";
-          opts = { colorscheme = "catppuccin-mocha"; };
+          opts = { colorscheme = osConfig.custom.colorscheme; };
         };
       };
     };

@@ -1,12 +1,24 @@
 { inputs, ... }: {
-  flake.modules.homeManager.stylix = { pkgs, lib, ... }: {
+  flake.modules.homeManager.stylix = { osConfig, pkgs, lib, ... }: let
+    # Mapping: canonical (lazyvim naming) → base16-schemes filename
+    base16-name = {
+      catppuccin-mocha = "catppuccin-mocha";
+      kanagawa         = "kanagawa";
+      tokyonight-day   = "tokyo-night-day";
+      tokyonight-moon  = "tokyo-night-moon";
+      tokyonight-night = "tokyo-night-night";
+      tokyonight-storm = "tokyo-night-storm";
+    }.${osConfig.custom.colorscheme} or (throw ''
+      Unknown colorscheme "${osConfig.custom.colorscheme}" — add it to the mapping in modules/stylix.nix
+    '');
+  in {
     imports = [ inputs.stylix.homeModules.stylix ];
 
     nixpkgs.overlays = lib.mkForce null;
 
     stylix = {
       enable = true;
-      base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+      base16Scheme = "${pkgs.base16-schemes}/share/themes/${base16-name}.yaml";
 
       icons = {
         enable = true;

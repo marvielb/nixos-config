@@ -6,47 +6,63 @@
       options.inInitrd = lib.mkOption { type = types.bool; default = false; };
     });
   in {
-    options.custom.persist = lib.mkOption {
-      type = types.submodule {
-        options = {
-          root = {
-            directories = lib.mkOption {
-              type = types.listOf entry;
-              default = [];
-            };
-            files = lib.mkOption {
-              type = types.listOf types.str;
-              default = [];
-            };
-          };
-          home = {
-            directories = lib.mkOption {
-              type = types.listOf types.str;
-              default = [];
-            };
-            files = lib.mkOption {
-              type = types.listOf types.str;
-              default = [];
-            };
-          };
-          users = lib.mkOption {
-            type = types.attrsOf (types.submodule {
-              options = {
-                directories = lib.mkOption {
-                  type = types.listOf types.str;
-                  default = [];
-                };
-                files = lib.mkOption {
-                  type = types.listOf types.str;
-                  default = [];
-                };
+    options.custom = {
+      persist = lib.mkOption {
+        type = types.submodule {
+          options = {
+            root = {
+              directories = lib.mkOption {
+                type = types.listOf entry;
+                default = [];
               };
-            });
-            default = {};
+              files = lib.mkOption {
+                type = types.listOf types.str;
+                default = [];
+              };
+            };
+            home = {
+              directories = lib.mkOption {
+                type = types.listOf types.str;
+                default = [];
+              };
+              files = lib.mkOption {
+                type = types.listOf types.str;
+                default = [];
+              };
+            };
+            users = lib.mkOption {
+              type = types.attrsOf (types.submodule {
+                options = {
+                  directories = lib.mkOption {
+                    type = types.listOf types.str;
+                    default = [];
+                  };
+                  files = lib.mkOption {
+                    type = types.listOf types.str;
+                    default = [];
+                  };
+                };
+              });
+              default = {};
+            };
           };
         };
+        default = {};
       };
-      default = {};
+
+      colorscheme = lib.mkOption {
+        type = types.str;
+        default = "catppuccin-mocha";
+        description = ''
+          Canonical colorscheme name (lazyvim convention).
+          Some names differ between lazyvim and base16-schemes —
+          see the mapping in modules/stylix.nix.
+
+          Examples:
+            "catppuccin-mocha"   # works in both stylix + lazyvim
+            "tokyonight-night"   # stylix maps "tokyo-night-night" in stylix.nix
+        '';
+      };
     };
 
     config = {

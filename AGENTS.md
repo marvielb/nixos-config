@@ -394,6 +394,31 @@ just update         # update flake.lock
 HM config is bundled into the NixOS build — `just switch` applies both system and
 user configs in one command. No separate `home-manager switch` needed.
 
+## Changing the Colorscheme
+
+The canonical colorscheme name lives in `modules/configuration.nix` under
+`custom.colorscheme`. To switch themes globally (stylix + neovim + anything else
+that reads the option):
+
+1. Set `custom.colorscheme` in `configuration.nix` to the lazyvim-style name
+   (e.g. `"tokyonight-night"`)
+2. If stylix needs a different filename, add the mapping in `modules/stylix.nix`
+3. Rebuild: `just switch`
+
+Canonical name → base16 mapping reference:
+
+| `custom.colorscheme`   | base16 filename          | Both? |
+|------------------------|--------------------------|-------|
+| `catppuccin-mocha`     | catppuccin-mocha.yaml    | Yes   |
+| `kanagawa`             | kanagawa.yaml            | Yes   |
+| `tokyonight-day`       | tokyo-night-day.yaml     | No    |
+| `tokyonight-moon`      | tokyo-night-moon.yaml    | No    |
+| `tokyonight-night`     | tokyo-night-night.yaml   | No    |
+| `tokyonight-storm`     | tokyo-night-storm.yaml   | No    |
+
+If you add a theme that isn't in the mapping, the build will fail with a clear
+`throw` error telling you to update `modules/stylix.nix`.
+
 ## Before Adding a New Module
 
 1. Check `RESEARCH.md` for cached findings on the relevant pattern/feature
