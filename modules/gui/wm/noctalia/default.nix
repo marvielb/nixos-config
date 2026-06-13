@@ -1,15 +1,5 @@
 { inputs, lib, ... }: {
   flake.modules.nixos.gui_wm_noctalia = { pkgs, config, lib, ... }: let
-    noctalia-shell = let
-      base = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
-        calendarSupport = true;
-      };
-    in base.overrideAttrs (o: {
-      preFixup = (o.preFixup or "") + /* sh */ ''
-        qtWrapperArgs+=(--set QT_QPA_PLATFORMTHEME gtk3)
-      '';
-    });
-
     noctalia-reload = pkgs.writeShellApplication {
       name = "noctalia-reload";
       text = /* sh */ ''
@@ -36,7 +26,7 @@
         RAW_OUTPUT=$(noctalia-shell list --json 2>/dev/null)
 
         if [[ ! "$RAW_OUTPUT" == "["* ]]; then
-          exec ${lib.getExe noctalia-shell}
+          exec noctalia-shell
         fi
 
         NOCTALIA_PATH=$(echo "$RAW_OUTPUT" | jq -r '.[] | .config_path | sub("/share/noctalia-shell/shell.qml$"; "")')
@@ -45,13 +35,7 @@
           exec "$NOCTALIA_PATH/bin/noctalia-shell" ipc call "$@"
         fi
 
-        if [[ ! "$NOCTALIA_PATH" =~ ${noctalia-shell} ]]; then
-          killall .quickshell-wra || true
-          ${lib.getExe noctalia-shell} &
-          sleep 2
-        fi
-
-        exec ${lib.getExe noctalia-shell} ipc call "$@"
+        exec noctalia-shell ipc call "$@"
       '';
     }) {};
 
@@ -68,13 +52,22 @@
       runtimeInputs = with pkgs; [ jq json-diff ];
       text = /* sh */ ''
         json-diff \
-          <(jq -S . "''${XDG_CONFIG_HOME:-$HOME/.config}/noctalia/settings.json") \
+          <(jq -S . "''${XDG_CONFIG_HOME:-$HOME}/.config/noctalia/settings.json") \
           <(noctalia-shell ipc call state all | jq -S '.settings')
       '';
     };
   in {
+    home-manager.sharedModules = [
+      inputs.noctalia.homeModules.default
+      {
+        programs.noctalia-shell.enable = true;
+
+        xdg.configFile."noctalia/colors.json".force = true;
+        # xdg.configFile."noctalia/settings.json".force = true;
+      }
+    ];
+
     environment.systemPackages = [
-      noctalia-shell
       noctalia-reload
       noctalia-start
       noctalia-ipc
@@ -90,13 +83,13 @@
     custom.niri.settings = {
       layer-rules = [
         {
-          matches = [ { namespace = "^noctalia-background-.*$"; } ];
+          matches = [{ namespace = "^noctalia-background-.*$"; }];
           background-effect.blur = true;
         }
       ];
       window-rules = [
         {
-          matches = [ { app-id = "^dev.noctalia.noctalia-qs$"; } ];
+          matches = [{ app-id = "^dev.noctalia.noctalia-qs$"; }];
           background-effect.blur = true;
         }
       ];

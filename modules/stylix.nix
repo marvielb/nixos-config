@@ -3,7 +3,6 @@
     # Mapping: canonical (lazyvim naming) → base16-schemes filename
     base16-name = {
       catppuccin-mocha = "catppuccin-mocha";
-      kanagawa         = "kanagawa";
       tokyonight-day   = "tokyo-night-day";
       tokyonight-moon  = "tokyo-night-moon";
       tokyonight-night = "tokyo-night-night";
