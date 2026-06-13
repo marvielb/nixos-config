@@ -24,34 +24,15 @@ in
     time.timeZone = "Asia/Manila";
     i18n.defaultLocale = "en_US.UTF-8";
 
-    home-manager.users.practice = { pkgs, ... }: {
+    home-manager.users.practice = { osConfig, ... }: {
+      home.stateVersion = osConfig.system.stateVersion;
+
       imports = with top.config.flake.modules.homeManager; [
         stylix
+        programs_alacritty
+        programs_lazygit
+        programs_keepassxc
       ];
-
-      home.stateVersion = "26.05";
-
-      programs.alacritty.enable = true;
-      programs.lazygit = {
-        enable = true;
-        settings.gui.theme.lightTheme = true;
-      };
-      programs.keepassxc = {
-        enable = true;
-        settings = {
-          General = {
-            ConfigVersion = 2;
-          };
-          GUI = {
-            ApplicationTheme = "classic";
-            CompactMode = false;
-          };
-          PasswordGenerator = {
-            AdditionalChars = "";
-            ExcludedChars = "";
-          };
-        };
-      };
     };
 
     custom = {
