@@ -257,6 +257,7 @@ You can `diff` two host files and immediately see what differs.
 | `_` prefix on files/dirs | Private helpers, skipped by import-tree |
 | `perSystem.packages.<name>` | Build package definitions alongside system config |
 | `custom.persist` in feature module | Declare persistence where the feature lives, not in the host collector |
+| `custom.persist.home.directories`  | Per-user paths merged into every user by `_preservation.nix` |
 
 ## Per-Feature Persistence (`custom.persist`)
 
@@ -276,6 +277,22 @@ Each feature module declares what files/directories it needs to persist, not a m
     };
 
     services.nginx = { /* ... */ };
+  };
+}
+```
+```
+
+For per-user data (app caches, state, config), use `custom.persist.home.directories`
+which gets merged into every user by the collector:
+
+```nix
+# modules/programs/lazyvim.nix
+{ inputs, ... }: {
+  flake.modules.nixos.programs_lazyvim = { ... }: {
+    custom.persist.home.directories = [
+      ".local/share/nvim"
+      ".local/state/nvim"
+    ];
   };
 }
 ```
@@ -309,8 +326,8 @@ let inherit (lib) mapAttrs; in {
       directories = config.custom.persist.root.directories;
       files = config.custom.persist.root.files;
       users = mapAttrs (name: p: {
-        directories = p.directories;
-        files = p.files;
+        directories = p.directories ++ config.custom.persist.home.directories;
+        files = p.files ++ config.custom.persist.home.files;
       }) config.custom.persist.users;
     };
   };
@@ -319,7 +336,8 @@ let inherit (lib) mapAttrs; in {
 
 Core (`configuration.nix`) declares the `options.custom.persist` submodule with
 `root.directories` (accepts strings or `{ directory, inInitrd? }` attrsets),
-`root.files`, and `users.<name>.{directories,files}`.
+`root.files`, `home.directories` and `home.files` (flat lists merged into
+every user by the collector), and `users.<name>.{directories,files}` (per-user entries).
 
 ## Adding a New Feature
 
