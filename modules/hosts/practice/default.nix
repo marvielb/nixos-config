@@ -34,7 +34,6 @@ in
         programs_foot
         programs_lazygit
         programs_keepassxc
-        programs_lazyvim
       ];
     };
 
