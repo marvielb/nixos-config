@@ -29,7 +29,7 @@ in
 
       imports = with top.config.flake.modules.homeManager; [
         stylix
-        programs_alacritty
+        programs_foot
         programs_lazygit
         programs_keepassxc
       ];

@@ -109,7 +109,7 @@ For user-level app configs (alacritty, lazygit, keepassxc, etc.):
 ```nix
 # modules/home/programs/alacritty.nix
 { ... }: {
-  flake.modules.homeManager.programs_alacritty = { ... }: {
+  flake.modules.homeManager.programs_foot = { ... }: {
     programs.alacritty.enable = true;
   };
 }
@@ -147,7 +147,7 @@ home-manager.users.<username> = { osConfig, ... }: {
 
   imports = with top.config.flake.modules.homeManager; [
     stylix
-    programs_alacritty
+    programs_foot
     programs_lazygit
   ];
 };
@@ -225,7 +225,7 @@ Each host declares what it wants by importing from both catalogs:
 
       imports = with top.config.flake.modules.homeManager; [
         stylix
-        programs_alacritty
+    programs_foot
         programs_lazygit
         programs_keepassxc
       ];
