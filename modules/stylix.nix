@@ -1,6 +1,8 @@
 { inputs, ... }: {
-  flake.modules.homeManager.stylix = { pkgs, ... }: {
+  flake.modules.homeManager.stylix = { pkgs, lib, ... }: {
     imports = [ inputs.stylix.homeModules.stylix ];
+
+    nixpkgs.overlays = lib.mkForce null;
 
     stylix = {
       enable = true;
@@ -25,7 +27,7 @@
         };
       };
 
-      targets.qt.enable = true;
+      autoEnable = true;
     };
   };
 
@@ -39,6 +41,5 @@
       noto-fonts-color-emoji
     ];
 
-    stylix.targets.qt.enable = true;
   };
 }

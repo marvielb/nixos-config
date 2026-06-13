@@ -1,17 +1,17 @@
 { config, inputs, lib, ... }@top:
 let
   inherit (lib) mkAfter;
-in {
+in
+{
   flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
       stylix
+      home-manager
       hardware_qemu
       auth_lemurs
       wm
       gui_wm_noctalia
       gui_browsers_zen-browser
-      gui_programs_keepassxc
-      gui_programs_alacritty
 
       ./_disko.nix
       ./_preservation.nix
@@ -23,6 +23,36 @@ in {
 
     time.timeZone = "Asia/Manila";
     i18n.defaultLocale = "en_US.UTF-8";
+
+    home-manager.users.practice = { pkgs, ... }: {
+      imports = with top.config.flake.modules.homeManager; [
+        stylix
+      ];
+
+      home.stateVersion = "26.05";
+
+      programs.alacritty.enable = true;
+      programs.lazygit = {
+        enable = true;
+        settings.gui.theme.lightTheme = true;
+      };
+      programs.keepassxc = {
+        enable = true;
+        settings = {
+          General = {
+            ConfigVersion = 2;
+          };
+          GUI = {
+            ApplicationTheme = "classic";
+            CompactMode = false;
+          };
+          PasswordGenerator = {
+            AdditionalChars = "";
+            ExcludedChars = "";
+          };
+        };
+      };
+    };
 
     custom = {
       programs.noctalia = {

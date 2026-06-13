@@ -212,30 +212,6 @@
         "type": "github"
       }
     },
-    "hm-wrapper-modules": {
-      "inputs": {
-        "home-manager": [
-          "home-manager"
-        ],
-        "nix-wrapper-modules": "nix-wrapper-modules",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1774554164,
-        "narHash": "sha256-HzYleaTR4n4wejE7nyTcq7F1Kp4Q5ow//k/y0fiHNs0=",
-        "owner": "sini",
-        "repo": "hm-wrapper-modules",
-        "rev": "b28ff211a8cce758a98e0db349c0f3dd77a13373",
-        "type": "github"
-      },
-      "original": {
-        "owner": "sini",
-        "repo": "hm-wrapper-modules",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -291,27 +267,6 @@
       "original": {
         "owner": "marvielb",
         "repo": "lazy-email",
-        "type": "github"
-      }
-    },
-    "nix-wrapper-modules": {
-      "inputs": {
-        "nixpkgs": [
-          "hm-wrapper-modules",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1774538285,
-        "narHash": "sha256-KRDNQDEWjB2O5SRH/oUTzi34cNxlIT8sab0FK2uqZ2g=",
-        "owner": "BirdeeHub",
-        "repo": "nix-wrapper-modules",
-        "rev": "15d740b2bfc545189a569147da7718457c12758e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "BirdeeHub",
-        "repo": "nix-wrapper-modules",
         "type": "github"
       }
     },
@@ -467,7 +422,6 @@
       "inputs": {
         "disko": "disko",
         "flake-parts": "flake-parts",
-        "hm-wrapper-modules": "hm-wrapper-modules",
         "home-manager": "home-manager",
         "job-rss": "job-rss",
         "lazy-email": "lazy-email",
