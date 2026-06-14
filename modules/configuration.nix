@@ -63,6 +63,24 @@
             "tokyonight-night"   # stylix maps "tokyo-night-night" in stylix.nix
         '';
       };
+
+      git.identity = lib.mkOption {
+        type = types.nullOr (types.submodule {
+          options.userName = lib.mkOption {
+            type = types.str;
+            description = "Git user.name";
+          };
+          options.userEmail = lib.mkOption {
+            type = types.str;
+            description = "Git user.email";
+          };
+        });
+        default = null;
+        description = ''
+          Git identity (userName + userEmail).
+          Must be set per-host where the git HM module is used.
+        '';
+      };
     };
 
     config = {

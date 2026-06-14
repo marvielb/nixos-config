@@ -34,10 +34,16 @@ in
         programs_foot
         programs_lazygit
         programs_keepassxc
+        programs_git
       ];
     };
 
     custom = {
+      git.identity = {
+        userName = "marvielb";
+        userEmail = "reply+marvielb@gmail.com";
+      };
+
       niri.startup = mkAfter [
         [ "noctalia-start" ]
       ];
