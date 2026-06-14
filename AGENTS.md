@@ -146,7 +146,6 @@ home-manager.users.<username> = { osConfig, ... }: {
   home.stateVersion = osConfig.system.stateVersion;
 
   imports = with top.config.flake.modules.homeManager; [
-    stylix
     programs_foot
     programs_lazygit
   ];
@@ -159,10 +158,10 @@ Key details:
   version drift. Never hardcode it.
 - `system.stateVersion = lib.mkDefault "26.05"` lives in `configuration.nix` as the
   single source of truth.
-- Stylix's HM module (`stylix.homeModules.stylix`) sets `nixpkgs.overlays` which
-  conflicts with `useGlobalPkgs`. The internal `nixpkgs.overlays = lib.mkForce null`
-  in `modules/stylix.nix` clears them — the NixOS stylix module already provides them
-  at the system level.
+- Stylix is injected via `home-manager.sharedModules` inside the NixOS catalog
+  module (`modules/stylix.nix`) — no separate HM catalog import needed in host configs.
+  The internal `nixpkgs.overlays = lib.mkForce null` clears conflicts with
+  `useGlobalPkgs`.
 
 ### niri: Exception — Wrapper, Not HM
 
@@ -170,6 +169,37 @@ niri does **not** use HM because there's no `programs.niri` HM module. Instead i
 `inputs.wrappers.wrappers.niri.wrap` (BirdeeHub/nix-wrapper-modules) which provides
 typed KDL config generation from structured Nix attrsets. The niri wrapper is
 registered in the NixOS catalog (`flake.modules.nixos.wm`) and stays as-is.
+
+### External HM Modules via `home-manager.sharedModules`
+
+When an external flake provides a Home Manager module (noctalia, zen-browser), use
+`home-manager.sharedModules` inside a single NixOS catalog entry to inject it for
+**all** users — no need to split into separate NixOS + HM files:
+
+```nix
+# modules/gui/browsers/zen-browser.nix
+{ inputs, ... }: {
+  flake.modules.nixos.gui_browsers_zen-browser = { pkgs, config, lib, ... }: {
+    home-manager.sharedModules = [
+      inputs.zen-browser.homeModules.twilight
+      {
+        programs.zen-browser = {
+          enable = true;
+          setAsDefaultBrowser = true;
+        };
+      }
+    ];
+
+    custom.persist.home.directories = [
+      ".config/zen"
+    ];
+  };
+}
+```
+
+This keeps the feature in one file: the NixOS module handles both system-level
+concerns (persistence) and user-level config (HM module injection). The host just
+imports it from the NixOS catalog — no separate HM catalog import needed.
 
 ## Host Wiring (`modules/hosts/nixos.nix`)
 
@@ -224,8 +254,7 @@ Each host declares what it wants by importing from both catalogs:
       home.stateVersion = osConfig.system.stateVersion;
 
       imports = with top.config.flake.modules.homeManager; [
-        stylix
-    programs_foot
+        programs_foot
         programs_lazygit
         programs_keepassxc
       ];
@@ -258,6 +287,7 @@ You can `diff` two host files and immediately see what differs.
 | `perSystem.packages.<name>` | Build package definitions alongside system config |
 | `custom.persist` in feature module | Declare persistence where the feature lives, not in the host collector |
 | `custom.persist.home.directories`  | Per-user paths merged into every user by `_preservation.nix` |
+| `home-manager.sharedModules` in NixOS module | Inject HM modules for **all** users from a single NixOS catalog entry — for external flakes that provide HM modules (stylix, noctalia, zen-browser) |
 
 ## Per-Feature Persistence (`custom.persist`)
 

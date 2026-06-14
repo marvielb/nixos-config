@@ -27,7 +27,6 @@
       home.stateVersion = osConfig.system.stateVersion;
 
       imports = with top.config.flake.modules.homeManager; [
-        stylix
         programs_foot
         programs_lazygit
         programs_keepassxc
