@@ -1,7 +1,4 @@
 { config, inputs, lib, ... }@top:
-let
-  inherit (lib) mkAfter;
-in
 {
   flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
@@ -43,10 +40,6 @@ in
         userName = "marvielb";
         userEmail = "reply+marvielb@gmail.com";
       };
-
-      niri.startup = mkAfter [
-        [ "noctalia-start" ]
-      ];
     };
 
     users.users.practice = {

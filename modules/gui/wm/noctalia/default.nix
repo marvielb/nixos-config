@@ -94,5 +94,9 @@
         }
       ];
     };
+
+    custom.niri.startup = lib.mkAfter [
+      [ "noctalia-start" ]
+    ];
   };
 }
