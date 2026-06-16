@@ -11,6 +11,7 @@
       gui_browsers_zen-browser
       gui_thunar
       programs_lazyvim
+      services_syncthing
 
       ./_disko.nix
       ./_preservation.nix
