@@ -12,7 +12,7 @@ in
       "/var/lib/systemd/timers"
       "/var/lib/nixos"
       "/var/log"
-      "/etc/ssh"
+      { directory = "/etc/ssh"; inInitrd = true; }
     ];
 
     root.files = [
