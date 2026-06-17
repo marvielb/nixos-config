@@ -12,6 +12,7 @@
       gui_thunar
       programs_lazyvim
       services_syncthing
+      security_sops-nix
 
       ./_disko.nix
       ./_preservation.nix
