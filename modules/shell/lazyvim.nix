@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.modules.nixos.programs_lazyvim = { config, ... }: {
+  flake.modules.nixos.shell_lazyvim = { config, ... }: {
     home-manager.sharedModules = [
       inputs.lazyvim.homeManagerModules.default
       {

@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.nixos.wm = { lib, pkgs, ... }: {
+  flake.modules.nixos.gui_niri = { lib, pkgs, ... }: {
     options.custom.niri = {
       startup = lib.mkOption {
         type = lib.types.listOf (lib.types.either lib.types.str (lib.types.listOf lib.types.str));

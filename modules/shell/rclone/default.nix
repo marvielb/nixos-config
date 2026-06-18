@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.nixos.programs_rclone = { ... }: {
+  flake.modules.nixos.shell_rclone = { ... }: {
     home-manager.sharedModules = [({ pkgs, ... }: {
       home.packages = with pkgs; [
         rclone

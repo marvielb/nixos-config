@@ -1,5 +1,5 @@
 { lib, ... }: {
-  flake.modules.nixos.wm = { pkgs, ... }: {
+  flake.modules.nixos.gui_niri = { pkgs, ... }: {
     options.custom.niri.keybinds = lib.mkOption {
       type = lib.types.attrs;
       default = { };

@@ -2,23 +2,37 @@
 {
   flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
+      # Foundation
       stylix
       home-manager
-      hardware_qemu
+
+      # Auth
       auth_lemurs
-      wm
-      gui_wm_noctalia
+
+      # Hardware
+      hardware_qemu
+
+      # GUI — windowing, display, GUI apps
+      gui_niri
+      gui_noctalia
       gui_browsers_zen-browser
       gui_thunar
-      programs_foot
-      programs_git
-      programs_keepassxc
-      programs_lazygit
-      programs_lazyvim
-      programs_rclone
+      gui_foot
+      gui_keepassxc
+
+      # Shell — CLI/TUI tools
+      shell_git
+      shell_lazygit
+      shell_lazyvim
+      shell_rclone
+
+      # Services — background daemons
       services_syncthing
+
+      # Security
       security_sops-nix
 
+      # Host-specific
       ./_disko.nix
       ./_preservation.nix
     ];

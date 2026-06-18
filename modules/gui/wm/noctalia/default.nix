@@ -1,5 +1,5 @@
 { inputs, lib, ... }: {
-  flake.modules.nixos.gui_wm_noctalia = { pkgs, config, lib, ... }: let
+  flake.modules.nixos.gui_noctalia = { pkgs, config, lib, ... }: let
     noctalia-reload = pkgs.writeShellApplication {
       name = "noctalia-reload";
       text = /* sh */ ''

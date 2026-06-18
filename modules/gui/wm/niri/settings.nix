@@ -1,5 +1,5 @@
 { lib, ... }: {
-  flake.modules.nixos.wm = { ... }: {
+  flake.modules.nixos.gui_niri = { ... }: {
     options.custom.niri.settings = lib.mkOption {
       type = lib.types.attrs;
       default = { };

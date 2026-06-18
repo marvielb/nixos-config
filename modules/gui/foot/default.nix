@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.nixos.programs_foot = { ... }: {
+  flake.modules.nixos.gui_foot = { ... }: {
     home-manager.sharedModules = [({ lib, ... }: {
       programs.foot = {
         enable = true;

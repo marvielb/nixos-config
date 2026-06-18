@@ -1,5 +1,5 @@
 { inputs, lib, ... }: {
-  flake.modules.nixos.wm = { pkgs, config, ... }: let
+  flake.modules.nixos.gui_niri = { pkgs, config, ... }: let
     niri' = inputs.wrappers.wrappers.niri.wrap {
       inherit pkgs;
       package = pkgs.niri;

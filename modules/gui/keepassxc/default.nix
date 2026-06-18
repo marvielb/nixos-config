@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.nixos.programs_keepassxc = { ... }: {
+  flake.modules.nixos.gui_keepassxc = { ... }: {
     home-manager.sharedModules = [{
       programs.keepassxc = {
         enable = true;

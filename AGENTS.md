@@ -55,8 +55,8 @@ modules/
       default.nix             # host picks from catalog + HM user block
       _disko.nix              # per-machine disk layout (private helper)
       _preservation.nix       # per-machine persistence collector (private helper)
-  programs/
-    neovim.nix                # exports flake.modules.nixos.programs_neovim
+  shell/
+    neovim.nix                # exports flake.modules.nixos.shell_neovim
     ...
   services/
     docker.nix                # exports flake.modules.nixos.services_docker
@@ -83,7 +83,7 @@ applies system-level config directly, or wraps user-level config via `home-manag
 Services, hardware, window managers, boot config — applied directly:
 
 ```nix
-# modules/programs/neovim.nix
+# modules/shell/neovim.nix
 { inputs, ... }: {
   perSystem = { pkgs, ... }: {
     packages.neovim-nvf = /* build custom neovim package */;
@@ -101,9 +101,9 @@ App configs (foot, lazygit, git, keepassxc, rclone) use `home-manager.sharedModu
 to inject HM config for all users of the host:
 
 ```nix
-# modules/programs/foot/default.nix
+# modules/gui/foot/default.nix
 { ... }: {
-  flake.modules.nixos.programs_foot = { ... }: {
+  flake.modules.nixos.gui_foot = { ... }: {
     home-manager.sharedModules = [({ lib, ... }: {
       programs.foot = {
         enable = true;
@@ -163,7 +163,7 @@ Key details:
 niri does **not** use HM because there's no `programs.niri` HM module. Instead it uses
 `inputs.wrappers.wrappers.niri.wrap` (BirdeeHub/nix-wrapper-modules) which provides
 typed KDL config generation from structured Nix attrsets. The niri wrapper is
-registered in the NixOS catalog (`flake.modules.nixos.wm`) and stays as-is.
+registered in the NixOS catalog (`flake.modules.nixos.gui_niri`) and stays as-is.
 
 ### External HM Modules via `home-manager.sharedModules`
 
@@ -234,7 +234,7 @@ Each host declares what it wants by importing from the catalog:
       stylix
       home-manager
       hardware_qemu
-      wm
+      gui_niri
 
       # Private host-specific modules (imported by relative path)
       ./_disko.nix
@@ -304,9 +304,9 @@ For per-user data (app caches, state, config), use `custom.persist.home.director
 which gets merged into every user by the collector:
 
 ```nix
-# modules/programs/lazyvim.nix
+# modules/shell/lazyvim.nix
 { inputs, ... }: {
-  flake.modules.nixos.programs_lazyvim = { ... }: {
+  flake.modules.nixos.shell_lazyvim = { ... }: {
     custom.persist.home.directories = [
       ".local/share/nvim"
       ".local/state/nvim"

@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.nixos.programs_git = { ... }: {
+  flake.modules.nixos.shell_git = { ... }: {
     home-manager.sharedModules = [({ osConfig, ... }: let
       identity = osConfig.custom.git.identity;
       checked = if identity == null then
