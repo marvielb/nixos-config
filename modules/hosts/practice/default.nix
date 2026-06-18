@@ -33,6 +33,7 @@
         programs_lazygit
         programs_keepassxc
         programs_git
+        programs_rclone
       ];
     };
 
