@@ -52,14 +52,9 @@ modules/
   hosts/
     nixos.nix                 # mkNixos wiring function
     <hostname>/
-      default.nix             # host picks from both catalogs + HM user block
+      default.nix             # host picks from catalog + HM user block
       _disko.nix              # per-machine disk layout (private helper)
       _preservation.nix       # per-machine persistence collector (private helper)
-  home/
-    programs/                 # flake.modules.homeManager.* catalog entries
-      alacritty.nix
-      lazygit.nix
-      keepassxc.nix
   programs/
     neovim.nix                # exports flake.modules.nixos.programs_neovim
     ...
@@ -80,11 +75,12 @@ modules/
 
 ## The Catalog Pattern
 
-Feature modules register into one of two catalogs depending on their domain:
+All features register into the NixOS catalog (`flake.modules.nixos.*`). A module either
+applies system-level config directly, or wraps user-level config via `home-manager.sharedModules`:
 
-### NixOS Catalog (`flake.modules.nixos.*`)
+### System-Level Features
 
-For system-level features (services, hardware, window managers, boot config):
+Services, hardware, window managers, boot config — applied directly:
 
 ```nix
 # modules/programs/neovim.nix
@@ -99,23 +95,26 @@ For system-level features (services, hardware, window managers, boot config):
 }
 ```
 
-The module does **nothing** by default — it only makes itself available as
-`programs_neovim` in the catalog. No system impact until a host imports it.
+### User-Level Features (via `home-manager.sharedModules`)
 
-### Home Manager Catalog (`flake.modules.homeManager.*`)
-
-For user-level app configs (alacritty, lazygit, keepassxc, etc.):
+App configs (foot, lazygit, git, keepassxc, rclone) use `home-manager.sharedModules`
+to inject HM config for all users of the host:
 
 ```nix
-# modules/home/programs/alacritty.nix
+# modules/programs/foot/default.nix
 { ... }: {
-  flake.modules.homeManager.programs_foot = { ... }: {
-    programs.alacritty.enable = true;
+  flake.modules.nixos.programs_foot = { ... }: {
+    home-manager.sharedModules = [({ lib, ... }: {
+      programs.foot = {
+        enable = true;
+        settings.main.pad = "10x10 center";
+      };
+    }];
   };
 }
 ```
 
-Same principle — registered in the catalog, inert until a host's HM user block imports it.
+The module does **nothing** by default — no system impact until a host imports it.
 
 ## Home Manager Integration
 
@@ -137,18 +136,14 @@ enables it for all hosts:
 ```
 
 Per-user HM configuration lives in each host's `default.nix` under
-`home-manager.users.<name>`. App configs are imported from the HM catalog via
-`top.config.flake.modules.homeManager`:
+`home-manager.users.<name>`. The host user block only needs `home.stateVersion` —
+all app configs are injected via `home-manager.sharedModules` from the NixOS catalog
+entries that the host imports:
 
 ```nix
 # modules/hosts/<hostname>/default.nix
 home-manager.users.<username> = { osConfig, ... }: {
   home.stateVersion = osConfig.system.stateVersion;
-
-  imports = with top.config.flake.modules.homeManager; [
-    programs_foot
-    programs_lazygit
-  ];
 };
 ```
 
@@ -158,10 +153,10 @@ Key details:
   version drift. Never hardcode it.
 - `system.stateVersion = lib.mkDefault "26.05"` lives in `configuration.nix` as the
   single source of truth.
-- Stylix is injected via `home-manager.sharedModules` inside the NixOS catalog
-  module (`modules/stylix.nix`) — no separate HM catalog import needed in host configs.
-  The internal `nixpkgs.overlays = lib.mkForce null` clears conflicts with
-  `useGlobalPkgs`.
+- `home-manager.sharedModules` is the single mechanism for injecting HM config —
+  used both by external flakes (stylix, noctalia, zen-browser) and by local feature
+  modules (foot, git, lazygit, etc.). The NixOS module handles everything in one file,
+  including persistence declarations via `custom.persist`.
 
 ### niri: Exception — Wrapper, Not HM
 
@@ -228,7 +223,7 @@ works on any NixOS config with zero special wiring.
 
 ## Host Configs Pick from the Catalog
 
-Each host declares what it wants by importing from both catalogs:
+Each host declares what it wants by importing from the catalog:
 
 ```nix
 # modules/hosts/<hostname>/default.nix
@@ -252,12 +247,6 @@ Each host declares what it wants by importing from both catalogs:
     # Home Manager user block
     home-manager.users.<username> = { osConfig, ... }: {
       home.stateVersion = osConfig.system.stateVersion;
-
-      imports = with top.config.flake.modules.homeManager; [
-        programs_foot
-        programs_lazygit
-        programs_keepassxc
-      ];
     };
   };
 }
@@ -276,8 +265,7 @@ You can `diff` two host files and immediately see what differs.
 
 | Convention | Rule |
 |---|---|
-| `flake.modules.nixos.<name>` | Register a NixOS feature for the catalog |
-| `flake.modules.homeManager.<name>` | Register a Home Manager feature for the catalog |
+| `flake.modules.nixos.<name>` | Register a feature for the catalog |
 | `flake.modules.nixos.host_<name>` | Host composition (what the machine includes) |
 | `flake.modules.nixos.core` | Global config applied to every host |
 | `flake.modules.nixos.home-manager` | Enables HM NixOS module globally |
@@ -287,7 +275,7 @@ You can `diff` two host files and immediately see what differs.
 | `perSystem.packages.<name>` | Build package definitions alongside system config |
 | `custom.persist` in feature module | Declare persistence where the feature lives, not in the host collector |
 | `custom.persist.home.directories`  | Per-user paths merged into every user by `_preservation.nix` |
-| `home-manager.sharedModules` in NixOS module | Inject HM modules for **all** users from a single NixOS catalog entry — for external flakes that provide HM modules (stylix, noctalia, zen-browser) |
+| `home-manager.sharedModules` in NixOS module | Inject HM config for **all** users from a single NixOS catalog entry — primary mechanism for user-level features |
 
 ## Per-Feature Persistence (`custom.persist`)
 
@@ -377,9 +365,9 @@ Two paths depending on the feature's domain:
 
 If the feature has a Home Manager module (alacritty, lazygit, keepassxc, etc.):
 
-1. Create `modules/home/<category>/<name>.nix`
-2. Add `flake.modules.homeManager.<name> = { ... }` with `programs.<name>` settings
-3. Add `<name>` to each host's `home-manager.users.<username>.imports` via `top.config.flake.modules.homeManager`
+1. Create `modules/<category>/<name>/default.nix`
+2. Add `flake.modules.nixos.<name> = { ... }` with `home-manager.sharedModules` wrapping the HM config
+3. Add `<name>` to each host's NixOS `imports`
 4. Done — no edits to `flake.nix` or import lists
 
 ### NixOS Feature (system-level)
@@ -394,12 +382,11 @@ If the feature is system-level (services, hardware, window managers, boot config
 ## Adding a New Host
 
 1. Create `modules/hosts/<hostname>/default.nix`
-2. Add `flake.modules.nixos.host_<hostname>` with imports from both catalogs
-3. Add `home-manager.users.<username>` block, importing desired HM catalog entries
-4. Derive `home.stateVersion` from `osConfig.system.stateVersion`
-5. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
-6. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
-7. Generate `hardware-configuration.nix` via `nixos-generate-config`
+2. Add `flake.modules.nixos.host_<hostname>` with desired imports from the catalog
+3. Add `home-manager.users.<username>` block with `home.stateVersion` derived from `osConfig.system.stateVersion`
+4. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
+5. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
+6. Generate `hardware-configuration.nix` via `nixos-generate-config`
 
 ## Git — Must Stage Before Testing
 

@@ -10,7 +10,12 @@
       gui_wm_noctalia
       gui_browsers_zen-browser
       gui_thunar
+      programs_foot
+      programs_git
+      programs_keepassxc
+      programs_lazygit
       programs_lazyvim
+      programs_rclone
       services_syncthing
       security_sops-nix
 
@@ -27,14 +32,6 @@
 
     home-manager.users.practice = { osConfig, ... }: {
       home.stateVersion = osConfig.system.stateVersion;
-
-      imports = with top.config.flake.modules.homeManager; [
-        programs_foot
-        programs_lazygit
-        programs_keepassxc
-        programs_git
-        programs_rclone
-      ];
     };
 
     custom = {
