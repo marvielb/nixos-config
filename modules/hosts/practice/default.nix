@@ -9,9 +9,6 @@
       # Auth
       auth_lemurs
 
-      # Hardware
-      hardware_qemu
-
       # GUI — windowing, display, GUI apps
       gui_niri
       gui_noctalia
@@ -34,6 +31,7 @@
       security_sops-nix
 
       # Host-specific
+      hardware_qemu
       ./_disko.nix
       ./_preservation.nix
     ];
