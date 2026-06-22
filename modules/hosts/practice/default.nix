@@ -16,6 +16,7 @@
       gui_thunar
       gui_foot
       gui_keepassxc
+      gui_logseq
 
       # Shell — CLI/TUI tools
       shell_git
