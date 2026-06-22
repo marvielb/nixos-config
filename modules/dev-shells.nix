@@ -5,6 +5,7 @@
         packages = [
           pkgs.nixos-rebuild
           pkgs.just
+          pkgs.nh
         ];
       };
   };

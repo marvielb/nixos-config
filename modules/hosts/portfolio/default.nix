@@ -2,6 +2,7 @@
   flake.modules.nixos.host_portfolio = { pkgs, lib, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
       hardware_qemu
+      shell_nh
       side_projects_lazy-email
       side_projects_job-rss
 

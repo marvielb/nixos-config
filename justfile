@@ -4,18 +4,18 @@ host := "practice"
 
 # Build the system (dry run, doesn't switch)
 build:
-    sudo nixos-rebuild dry-build --flake .#{{host}}
+    nh os build . -H {{host}}
 
 # Build and activate
 switch:
-    sudo nixos-rebuild switch --flake .#{{host}}
+    nh os switch . -H {{host}}
 
 # Deploy to a remote host
 deploy host=host:
-    nixos-rebuild --target-host {{host}}@{{host}}.box --sudo switch --flake .#{{host}} --ask-sudo-password
+    nh os switch . -H {{host}} --target-host {{host}}@{{host}}.box
 
 deploy-boot host=host:
-    nixos-rebuild --target-host {{host}}@{{host}}.box --sudo boot --flake .#{{host}} --ask-sudo-password
+    nh os boot . -H {{host}} --target-host {{host}}@{{host}}.box
 
 # One-time bootstrap: extract age key from a deployed machine and add to .sops.yaml
 get-key host=host:

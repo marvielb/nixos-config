@@ -25,6 +25,7 @@
       shell_lazygit
       shell_lazyvim
       shell_rclone
+      shell_nh
 
       # Services — background daemons
       services_syncthing
