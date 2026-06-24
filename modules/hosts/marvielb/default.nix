@@ -1,6 +1,6 @@
 { config, inputs, lib, ... }@top:
 {
-  flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
+  flake.modules.nixos.host_marvielb = { pkgs, modulesPath, ... }: {
     imports = with top.config.flake.modules.nixos; [
       # Foundation
       stylix
@@ -32,19 +32,19 @@
       security_sops-nix
 
       # Host-specific
-      hardware_qemu
+      ./_hardware.nix
       ./_disko.nix
       ./_preservation.nix
     ];
 
-    boot.loader.grub.enable = true;
+    boot.loader.systemd-boot.enable = true;
 
-    networking.hostName = "nixos";
+    networking.hostName = "marvielb";
 
     time.timeZone = "Asia/Manila";
     i18n.defaultLocale = "en_US.UTF-8";
 
-    home-manager.users.practice = { osConfig, ... }: {
+    home-manager.users.marvielb = { osConfig, ... }: {
       home.stateVersion = osConfig.system.stateVersion;
     };
 
@@ -55,14 +55,12 @@
       };
     };
 
-    users.users.practice = {
+    users.users.marvielb = {
       isNormalUser = true;
       initialPassword = "123456";
       extraGroups = [ "wheel" "seat" "video" ];
       packages = with pkgs; [ tree ];
     };
-
-    environment.systemPackages = with pkgs; [ vim ];
 
     services.openssh.enable = true;
 
@@ -70,7 +68,7 @@
 
     security.sudo.extraRules = [
       {
-        users = [ "practice" ];
+        users = [ "marvielb" ];
         commands = [
           { command = "ALL"; options = [ "NOPASSWD" ]; }
         ];

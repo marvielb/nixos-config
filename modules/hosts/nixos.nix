@@ -10,6 +10,7 @@ let
   };
 in {
   flake.nixosConfigurations = {
+    marvielb = mkNixos "marvielb" {};
     practice = mkNixos "practice" {};
     portfolio = mkNixos "portfolio" {};
   };
