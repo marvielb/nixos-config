@@ -1,6 +1,6 @@
 { config, inputs, lib, ... }@top:
 {
-  flake.modules.nixos.host_practice = { pkgs, modulesPath, ... }: {
+  flake.modules.nixos.host_practice = { pkgs, modulesPath, inputs, ... }: {
     imports = with top.config.flake.modules.nixos; [
       # Foundation
       stylix
@@ -30,8 +30,9 @@
 
       # Security
       security_sops-nix
-
-      # Host-specific
+    ] ++ [
+      inputs.disko.nixosModules.disko
+      inputs.preservation.nixosModules.default
       hardware_qemu
       ./_disko.nix
       ./_preservation.nix

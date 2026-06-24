@@ -1,9 +1,8 @@
-{ inputs, config, lib, ... }:
+{ config, lib, ... }:
 let
   inherit (lib) mapAttrs;
 in
 {
-  imports = [ inputs.preservation.nixosModules.default ];
   custom.persist = {
     root.directories = [
       "/etc/nixos"

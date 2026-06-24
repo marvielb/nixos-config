@@ -1,11 +1,13 @@
 { config, inputs, ... }@top: {
-  flake.modules.nixos.host_portfolio = { pkgs, lib, modulesPath, ... }: {
+  flake.modules.nixos.host_portfolio = { pkgs, lib, modulesPath, inputs, ... }: {
     imports = with top.config.flake.modules.nixos; [
       hardware_qemu
       shell_nh
       side_projects_lazy-email
       side_projects_job-rss
-
+    ] ++ [
+      inputs.disko.nixosModules.disko
+      inputs.preservation.nixosModules.default
       ./_disko.nix
       ./_preservation.nix
     ];
