@@ -1,144 +1,100 @@
-# Live ISO Install
+# Install via nixos-anywhere
 
-Boot the target machine with a NixOS 26.05 minimal ISO and run these steps.
+Builds on the **source machine** (e.g. Proxmox VM), ships the closure over
+SSH. The target only needs a live ISO with SSH access — no local build needed.
 
-## 1. Prepare the live environment
+## 1. Boot the target with NixOS minimal ISO
+
+Boot the physical PC (or VM) with a NixOS 26.05 minimal ISO.
+
+## 2. Prepare the live environment
 
 ```bash
 sudo -i
-passwd                              # set root password (optional, for SSH)
-systemctl start sshd                # optional — lets you SSH in from another machine
-export NIX_CONFIG="experimental-features = nix-command flakes"
+passwd                              # set root password
+systemctl start sshd                # enable SSH access
+ip a                                # note the IP address
 ```
 
-## 2. Clone this repo
+That's all the target needs. Everything else runs from your source machine.
+
+## 3. From the source machine (Proxmox VM)
+
+Ensure this repo is cloned and flakes are enabled:
 
 ```bash
-nix-shell -p git
-git clone <repo-url> /root/nixos-config
-cd /root/nixos-config
+git clone <repo-url> /path/to/config
+cd /path/to/config
 ```
 
-## 3. Find the target disk
+### For a VM test
 
-```bash
-lsblk
-ls /dev/disk/by-id/
-```
-
-Make a note of the disk ID (e.g. `/dev/disk/by-id/nvme-...` for NVMe,
-`/dev/vda` for a VM).
-
-## 4. Generate hardware config
-
-```bash
-nixos-generate-config --root /mnt
-```
-
-Open the generated `/mnt/etc/nixos/hardware-configuration.nix` and copy the
-`boot.initrd.availableKernelModules`, `boot.kernelModules`, and any
-`hardware.cpu` / GPU sections into
-`modules/hosts/<hostname>/_hardware.nix`. Do **not** copy `fileSystems` —
-disko handles those.
-
-<details>
-<summary>Example: VM with virtio disk</summary>
-
-```nix
-# modules/hosts/marvielb/_hardware.nix
-{ ... }: {
-  boot.initrd.availableKernelModules = [ "virtio" "virtio_blk" "virtio_pci" ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
-}
-```
-
-</details>
-
-## 5. Point `_disko.nix` at the target disk
-
-`_disko.nix` has the physical NVMe path by default. For a VM test, override
-it with a `sed` one-liner (no permanent edits):
+Override the disk device before running:
 
 ```bash
 sed -i 's|nvme-PNY_CS3030_500GB_SSD_PNY48200266260101A28|vda|' \
   modules/hosts/marvielb/_disko.nix
 ```
 
-## 6. Partition, format, and mount (disko only — no install)
+### Run nixos-anywhere
 
 ```bash
-sudo nix run 'github:nix-community/disko/latest#disko' -- \
-  --mode format,mount \
-  ./modules/hosts/marvielb/_disko.nix
+nix run github:nix-community/nixos-anywhere -- \
+  --flake .#marvielb \
+  --generate-hardware-config nixos-generate-config ./_tmp-hardware.nix \
+  root@<target-ip>
 ```
 
-This creates partitions, formats filesystems, and mounts at `/mnt`. No Nix
-build happens — the tmpfs isn't touched.
+This single command:
 
-## 7. Redirect `/nix` to the target disk
+1. Evaluates `nixosConfigurations.marvielb` from the flake
+2. Builds the closure on the source machine (plenty of space)
+3. SSHs into the target live ISO
+4. Runs disko to partition, format, and mount
+5. Runs `nixos-generate-config` on the target, copies result to `_tmp-hardware.nix`
+6. Copies the closure and runs `nixos-install`
+7. Prompts you to set the root password
 
-The live ISO's `/nix/store` is tmpfs (~3GB on 12GB RAM) — too small for a
-full desktop build. Bind-mount the target's `/nix` subvolume over it:
+## 4. Extract the real hardware config
 
-```bash
-sudo mount --bind /mnt/nix /nix
-```
+After the install finishes, `_tmp-hardware.nix` contains the kernel modules
+and hardware settings for the actual machine. Cherry-pick the
+`boot.initrd.availableKernelModules`, `boot.kernelModules`, etc. into
+`_hardware.nix` and delete `_tmp-hardware.nix`. Do **not** copy the
+`fileSystems` block — disko handles that.
 
-Now all build artifacts land on the NVMe (or virtual disk).
-
-## 8. Install
-
-```bash
-sudo nixos-install --root /mnt --flake .#marvielb
-```
-
-This evaluates the flake and builds the closure on the target disk. Set the
-root password when prompted.
-
-## 9. Reboot
-
-```bash
-reboot
-```
+## 5. Reboot
 
 Remove the ISO and boot into the new system.
 
-## 7. Post-install: sops-nix bootstrap
+## 6. Post-install: sops-nix bootstrap
 
-From another machine that has this repo cloned, add the new machine's age key:
+From the source machine, add the new machine's age key:
 
 ```bash
-# Get the age public key from the new machine
-ssh <user>@<ip> "ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"
-
-# Append it to .sops.yaml and rekey existing secrets
-# (You can also follow just get-key if SSH hostname resolution is set up)
+ssh root@<target-ip> "ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"
 ```
 
-Then re-deploy to apply secrets:
+Append the key to `.sops.yaml` and rekey existing secrets, then redeploy:
 
 ```bash
-just deploy <hostname>
+git add -A && git commit -m "add marvielb sops key"
+just deploy marvielb
 ```
 
 ## Testing in a VM first
 
-If testing before bare metal:
-
 1. Create a VM with UEFI (OVMF), 12GB+ RAM, one virtual disk
-2. Boot the NixOS ISO in the VM
-3. Follow steps 1–9 above
-4. In step 5, override the disk with `sed -i 's|nvme-.*|vda|' modules/hosts/marvielb/_disko.nix`
-5. In step 4, set `_hardware.nix` to `virtio` kernel modules (see example)
+2. Boot NixOS ISO in the VM, follow step 2 above
+3. On the source machine: `sed` override disk to `vda` (step 3), then run
+   nixos-anywhere
+4. After install, set `_hardware.nix` to `virtio` kernel modules (see template
+   in the file)
 
-The only differences from bare metal are the disk device path (step 5) and
-`_hardware.nix` contents (step 4). Everything else — boot loader, tmpfs root,
-impermanence — is identical.
-
-After confirming the VM works, restore `_disko.nix` to the NVMe path before
-installing on bare metal:
+After confirming the VM works, restore `_disko.nix`:
 
 ```bash
 git checkout modules/hosts/marvielb/_disko.nix
 ```
+
+Then install on bare metal — same command, just different IP and no `sed`.
