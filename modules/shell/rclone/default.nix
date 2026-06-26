@@ -19,6 +19,24 @@
               --vfs-cache-mode writes --vfs-cache-max-age 1h
           '';
         })
+        (writeShellApplication {
+          name = "sync-budget";
+          text = ''
+            exec rclone sync ~/budget accounting:
+          '';
+        })
+        (writeShellApplication {
+          name = "sync-notes";
+          text = ''
+            exec rclone sync ~/Intersetial\ Journals/ logseq:
+          '';
+        })
+        (writeShellApplication {
+          name = "sync-passwords";
+          text = ''
+            exec rclone sync ~/Passwords gdrive:credentials
+          '';
+        })
       ];
 
       home.file.".config/rclone/rclone.conf".source = ./rclone.conf;
