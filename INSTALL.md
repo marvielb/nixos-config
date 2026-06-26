@@ -41,7 +41,7 @@ sed -i 's|nvme-PNY_CS3030_500GB_SSD_PNY48200266260101A28|vda|' \
 ```bash
 nix run github:nix-community/nixos-anywhere -- \
   --flake .#marvielb \
-  --generate-hardware-config nixos-generate-config ./_tmp-hardware.nix \
+  --generate-hardware-config nixos-generate-config ./modules/hosts/marvielb/_hardware.nix \
   root@<target-ip>
 ```
 
@@ -51,17 +51,24 @@ This single command:
 2. Builds the closure on the source machine (plenty of space)
 3. SSHs into the target live ISO
 4. Runs disko to partition, format, and mount
-5. Runs `nixos-generate-config` on the target, copies result to `_tmp-hardware.nix`
+5. Runs `nixos-generate-config` on the target, copies result to `_hardware.nix`
+   (overwriting the stub committed in the repo)
 6. Copies the closure and runs `nixos-install`
 7. Prompts you to set the root password
 
-## 4. Extract the real hardware config
+## 4. Commit the generated hardware config
 
-After the install finishes, `_tmp-hardware.nix` contains the kernel modules
-and hardware settings for the actual machine. Cherry-pick the
-`boot.initrd.availableKernelModules`, `boot.kernelModules`, etc. into
-`_hardware.nix` and delete `_tmp-hardware.nix`. Do **not** copy the
-`fileSystems` block — disko handles that.
+After the install finishes, `_hardware.nix` contains the full hardware config
+(boot kernel modules, CPU microcode, etc.) for the actual machine. Commit it
+from whatever machine has repo access:
+
+```bash
+git add modules/hosts/marvielb/_hardware.nix
+git commit -m "add marvielb hardware config"
+```
+
+The `fileSystems` block in the generated file is harmless — disko overrides it.
+No manual cherry-picking needed.
 
 ## 5. Reboot
 
@@ -87,9 +94,8 @@ just deploy marvielb
 1. Create a VM with UEFI (OVMF), 12GB+ RAM, one virtual disk
 2. Boot NixOS ISO in the VM, follow step 2 above
 3. On the source machine: `sed` override disk to `vda` (step 3), then run
-   nixos-anywhere
-4. After install, set `_hardware.nix` to `virtio` kernel modules (see template
-   in the file)
+   nixos-anywhere — this generates `_hardware.nix` with the correct `virtio`
+   kernel modules for the VM automatically
 
 After confirming the VM works, restore `_disko.nix`:
 

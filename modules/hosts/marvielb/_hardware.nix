@@ -1,9 +1,9 @@
-# Install-time: replace this with the hardware-specific parts of
-#   nixos-generate-config --root /mnt
-# Extract boot.initrd/boot.kernel/hardware.cpu sections only.
-# Do NOT copy fileSystems — disko handles that.
-{ ... }: {
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usb_storage" ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
-}
+{ ... }: throw ''
+  _hardware.nix has not been generated for host 'marvielb'.
+
+  Run nixos-anywhere with --generate-hardware-config to generate it:
+
+    nix run github:nix-community/nixos-anywhere -- --flake .#marvielb --generate-hardware-config nixos-generate-config ./modules/hosts/marvielb/_hardware.nix root@<target-ip>
+
+  After install, commit the generated file from the target machine.
+''
