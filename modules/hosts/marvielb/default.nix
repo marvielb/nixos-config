@@ -24,6 +24,7 @@
       shell_lazyvim
       shell_rclone
       shell_nh
+      shell_htop
 
       # Services — background daemons
       services_syncthing
