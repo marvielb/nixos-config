@@ -33,23 +33,23 @@
         # Logout
         "Mod+Shift+E".spawn = [ "${pkgs.wlogout}/bin/wlogout" ];
 
-        # Navigation (HJKL)
-        "Mod+H".focus-column-or-monitor-left = _: { };
-        "Mod+J".focus-window-or-workspace-down = _: { };
-        "Mod+K".focus-window-or-workspace-up = _: { };
-        "Mod+L".focus-column-or-monitor-right = _: { };
+        # Navigation (Arrow keys)
+        "Mod+Left".focus-column-or-monitor-left = _: { };
+        "Mod+Down".focus-window-or-workspace-down = _: { };
+        "Mod+Up".focus-window-or-workspace-up = _: { };
+        "Mod+Right".focus-column-or-monitor-right = _: { };
 
         # Move windows
-        "Mod+Shift+H".move-column-left-or-to-monitor-left = _: { };
-        "Mod+Shift+J".move-window-down-or-to-workspace-down = _: { };
-        "Mod+Shift+K".move-window-up-or-to-workspace-up = _: { };
-        "Mod+Shift+L".move-column-right-or-to-monitor-right = _: { };
+        "Mod+Shift+Left".move-column-left-or-to-monitor-left = _: { };
+        "Mod+Shift+Down".move-window-down-or-to-workspace-down = _: { };
+        "Mod+Shift+Up".move-window-up-or-to-workspace-up = _: { };
+        "Mod+Shift+Right".move-column-right-or-to-monitor-right = _: { };
 
-        # Resize
-        "Mod+Left".set-column-width = "-10%";
-        "Mod+Right".set-column-width = "+10%";
-        "Mod+Up".set-window-height = "-10%";
-        "Mod+Down".set-window-height = "+10%";
+        # Resize (HJKL)
+        "Mod+H".set-column-width = "-10%";
+        "Mod+J".set-window-height = "+10%";
+        "Mod+K".set-window-height = "-10%";
+        "Mod+L".set-column-width = "+10%";
         "Mod+R".switch-preset-column-width = _: { };
         "Mod+Shift+R".switch-preset-window-height = _: { };
 
