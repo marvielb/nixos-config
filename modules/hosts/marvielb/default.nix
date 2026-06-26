@@ -39,7 +39,8 @@
       ./_preservation.nix
     ];
 
-    boot.loader.systemd-boot.enable = true;
+    # boot.loader.systemd-boot.enable = true;
+    boot.loader.grub.enable = true;
 
     networking.hostName = "marvielb";
 
