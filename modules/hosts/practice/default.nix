@@ -25,6 +25,7 @@
       shell_rclone
       shell_nh
       shell_htop
+      shell_fastfetch
 
       # Services — background daemons
       services_syncthing

@@ -279,6 +279,7 @@ You can `diff` two host files and immediately see what differs.
 | `custom.persist` in feature module | Declare persistence where the feature lives, not in the host collector |
 | `custom.persist.home.directories`  | Per-user paths merged into every user by `_preservation.nix` |
 | `home-manager.sharedModules` in NixOS module | Inject HM config for **all** users from a single NixOS catalog entry — primary mechanism for user-level features |
+| `programs.<name>` via `home-manager.sharedModules` | Prefer HM modules over `environment.systemPackages` — HM-integrated programs can be themed by stylix (and other HM-aware tools). Stylix injects via `home-manager.sharedModules`, so only HM-managed programs benefit. |
 
 ## Per-Feature Persistence (`custom.persist`)
 
