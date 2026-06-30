@@ -281,6 +281,26 @@ You can `diff` two host files and immediately see what differs.
 | `home-manager.sharedModules` in NixOS module | Inject HM config for **all** users from a single NixOS catalog entry — primary mechanism for user-level features |
 | `programs.<name>` via `home-manager.sharedModules` | Prefer HM modules over `environment.systemPackages` — HM-integrated programs can be themed by stylix (and other HM-aware tools). Stylix injects via `home-manager.sharedModules`, so only HM-managed programs benefit. |
 
+## Option Lookup — Choose the Right Source
+
+The MCP search tool queries different sources depending on what you pass:
+
+| What you're looking for | `action` | `type` / `source` |
+|---|---|---|
+| NixOS option (e.g. `services.nginx.enable`) | search | `type: options` |
+| Home Manager option (e.g. `programs.bash.*`) | search | `source: home-manager` |
+| Stylix target options (`stylix.targets.<name>.*`) | search | `source: home-manager` |
+| Nix packages | search/info | `type: packages` (default) |
+| Option details / exact declaration | info | `type: option` (NixOS) |
+
+**Stylix targets** (`stylix.targets.<name>.*`) are **Home Manager options** — search with
+`source: home-manager`, not `type: options`. The stylix docs at
+https://nix-community.github.io/stylix/ are the authoritative reference.
+
+**`stylix.autoEnable = true`** (set in `modules/stylix.nix`) enables theming for all
+supported targets automatically. Before manually adding `stylix.targets.<name>.enable`,
+check whether the target is already covered by `autoEnable`.
+
 ## Per-Feature Persistence (`custom.persist`)
 
 Each feature module declares what files/directories it needs to persist, not a monolithic config:
@@ -498,11 +518,13 @@ Canonical name → base16 mapping reference:
 If you add a theme that isn't in the mapping, the build will fail with a clear
 `throw` error telling you to update `modules/stylix.nix`.
 
-## Before Adding a New Module
+## Before Adding a New Module — One-Shot Protocol
 
 1. Check `RESEARCH.md` for cached findings on the relevant pattern/feature
 2. If not found, check the reference repo (https://github.com/k1ng440/dotfiles.nix) for inspiration on structure, conventions, and persistence
-3. Append new general findings to `RESEARCH.md` so they're cached for future sessions
+3. **Determine the complete set of files needed** — every file to create and every file to modify — by examining all relevant existing patterns in the repo first
+4. Present the full plan (create + modify files with contents) in a single response
+5. Append new general findings to `RESEARCH.md` so they're cached for future sessions
 
 ## References
 

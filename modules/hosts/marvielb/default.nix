@@ -26,6 +26,7 @@
       shell_nh
       shell_htop
       shell_fastfetch
+      shell_tmux
 
       # Services — background daemons
       services_syncthing
