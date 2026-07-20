@@ -7,19 +7,30 @@
       terminal = "screen-256color";
       plugins = with pkgs; [ tmuxPlugins.catppuccin ];
       extraConfigBeforePlugins = ''
+        set -g default-terminal "screen-256color"
         set -as terminal-features ",xterm-256color:RGB"
+
+
         set -g @catppuccin_flavor "mocha"
         set -g @catppuccin_window_status_style "rounded"
-        set -g @catppuccin_window_number_position "right"
-        set -g @catppuccin_window_text " #W"
-        set -g @catppuccin_window_current_text " #W"
-        set -g @catppuccin_status_left_separator "  "
-        set -g @catppuccin_status_right_separator " "
-        set -g @catppuccin_status_connect_separator "no"
-      '';
-      extraConfig = ''
+
         set -g status-left ""
-        set -g status-right "#S"
+        set -g @catppuccin_window_left_separator ""
+        set -g @catppuccin_window_right_separator " "
+        set -g @catppuccin_window_middle_separator " █"
+        set -g @catppuccin_window_number_position "right"
+        set -g @catppuccin_status_fill "number"
+        set -g @catppuccin_window_text "#W"
+        set -g @catppuccin_window_current_text "#W"
+
+        set -g @catppuccin_status_left_separator  " "
+        set -g @catppuccin_status_right_separator ""
+        set -g @catppuccin_status_right_separator_inverse "no"
+        set -g @catppuccin_status_fill "icon"
+        set -g @catppuccin_status_connect_separator "no"
+
+        set -g status-right "#{E:@catppuccin_status_application}"
+        set -ag status-right "#{E:@catppuccin_status_session}"
       '';
     };
 
