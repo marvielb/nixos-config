@@ -14,7 +14,9 @@
           plugins = {
             colorscheme = inputs.lazyvim.lib.lazyConfig {
               plugin = "LazyVim/LazyVim";
-              opts = { colorscheme = config.custom.colorscheme; };
+              opts = {
+                colorscheme = config.custom.colorscheme;
+              };
             };
           };
         };

@@ -8,19 +8,27 @@
 
     config.custom.niri.keybinds =
       let
-        wsBinds = builtins.listToAttrs (builtins.genList (i: {
-          name = if i + 1 == 10 then "Mod+0" else "Mod+${toString (i + 1)}";
-          value.focus-workspace = i + 1;
-        }) 10);
-        wsMoveBinds = builtins.listToAttrs (builtins.genList (i: {
-          name = if i + 1 == 10 then "Mod+Shift+0" else "Mod+Shift+${toString (i + 1)}";
-          value.move-window-to-workspace = i + 1;
-        }) 10);
+        wsBinds = builtins.listToAttrs (
+          builtins.genList (i: {
+            name = if i + 1 == 10 then "Mod+0" else "Mod+${toString (i + 1)}";
+            value.focus-workspace = i + 1;
+          }) 10
+        );
+        wsMoveBinds = builtins.listToAttrs (
+          builtins.genList (i: {
+            name = if i + 1 == 10 then "Mod+Shift+0" else "Mod+Shift+${toString (i + 1)}";
+            value.move-window-to-workspace = i + 1;
+          }) 10
+        );
       in
       {
         # Terminal & app launcher
         "Mod+Return".spawn = [ "${pkgs.foot}/bin/foot" ];
-        "Mod+D".spawn = [ "${pkgs.wofi}/bin/wofi" "--show" "drun" ];
+        "Mod+D".spawn = [
+          "${pkgs.wofi}/bin/wofi"
+          "--show"
+          "drun"
+        ];
         "Mod+N".spawn = [ "${pkgs.thunar}/bin/thunar" ];
 
         # Close & toggles
@@ -55,17 +63,20 @@
 
         # Screenshot
         "Print".spawn = [
-          "${pkgs.bash}/bin/bash" "-c"
+          "${pkgs.bash}/bin/bash"
+          "-c"
           "${pkgs.grimblast}/bin/grimblast save area | ${pkgs.swappy}/bin/swappy -f -"
         ];
 
         # Volume
         "XF86AudioRaiseVolume".spawn = [
-          "${pkgs.bash}/bin/bash" "-c"
+          "${pkgs.bash}/bin/bash"
+          "-c"
           "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
         ];
         "XF86AudioLowerVolume".spawn = [
-          "${pkgs.bash}/bin/bash" "-c"
+          "${pkgs.bash}/bin/bash"
+          "-c"
           "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
         ];
       }

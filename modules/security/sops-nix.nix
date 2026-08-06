@@ -9,6 +9,9 @@
       sopsFile = ./test/secrets.yaml;
     };
 
-    environment.systemPackages = with pkgs; [ sops ssh-to-age ];
+    environment.systemPackages = with pkgs; [
+      sops
+      ssh-to-age
+    ];
   };
 }

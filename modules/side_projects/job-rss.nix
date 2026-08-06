@@ -1,5 +1,11 @@
 { inputs, ... }: {
-  flake.modules.nixos.side_projects_job-rss = { pkgs, config, lib, ... }:
+  flake.modules.nixos.side_projects_job-rss =
+    {
+      pkgs,
+      config,
+      lib,
+      ...
+    }:
     let
       domain = "jobs.marvielb.com";
       appPkg = inputs.job-rss.outputs.packages.${pkgs.system}.job-rss;
@@ -127,7 +133,10 @@
           chown -R ${projectUser}:nginx ${appDir}/storage
           echo "job-rss: deploy setup done"
         '';
-        deps = [ "users" "jobRssStorage" ];
+        deps = [
+          "users"
+          "jobRssStorage"
+        ];
       };
 
       systemd.services."${app}-queue-worker" = {

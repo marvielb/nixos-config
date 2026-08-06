@@ -54,13 +54,27 @@ get-key host=host:
 edit-secret path:
     nix run nixpkgs#sops -- {{path}}
 
-# Evaluate the whole flake
+# Evaluate the whole flake (also evaluates all hosts)
 check:
     nix flake check
 
+# Build and run flake checks (persist invariants etc.)
+test:
+    nix flake check --print-build-logs
+
+# Boot a host in a QEMU VM for interactive smoke-testing
+vm host=host:
+    nixos-rebuild build-vm --flake .#{{host}}
+
+# Run linters on all nix files
+lint:
+    nix run nixpkgs#statix -- check .
+    nix run nixpkgs#deadnix -- --fail .
+    nix run nixpkgs#nixfmt -- --check $(git ls-files '*.nix')
+
 # Format all nix files
 fmt:
-    nix fmt
+    nix run nixpkgs#nixfmt -- $(git ls-files '*.nix')
 
 # Update flake.lock
 update:

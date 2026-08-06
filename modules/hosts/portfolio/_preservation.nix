@@ -7,7 +7,10 @@ in
     root.directories = [
       "/etc/nixos"
       "/var/lib/bluetooth"
-      { directory = "/var/lib/nixos"; inInitrd = true; }
+      {
+        directory = "/var/lib/nixos";
+        inInitrd = true;
+      }
       "/var/lib/systemd/timers"
       "/var/lib/nixos"
       "/var/log"
@@ -30,12 +33,10 @@ in
     preserveAt."/persistent" = {
       directories = config.custom.persist.root.directories;
       files = config.custom.persist.root.files;
-      users = mapAttrs
-        (name: p: {
-          directories = p.directories ++ config.custom.persist.home.directories;
-          files = p.files ++ config.custom.persist.home.files;
-        })
-        config.custom.persist.users;
+      users = mapAttrs (name: p: {
+        directories = p.directories ++ config.custom.persist.home.directories;
+        files = p.files ++ config.custom.persist.home.files;
+      }) config.custom.persist.users;
     };
   };
 }

@@ -1,7 +1,9 @@
 {
   nixConfig = {
     extra-substituters = [ "https://noctalia.cachix.org" ];
-    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+    extra-trusted-public-keys = [
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    ];
   };
 
   inputs = {
@@ -56,15 +58,14 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, nixpkgs, ... }:
+  outputs =
+    inputs@{ flake-parts, nixpkgs, ... }:
     let
       inherit (nixpkgs.lib.fileset) toList fileFilter;
-      import-tree = path:
-        toList (fileFilter
-          (file: file.hasExt "nix" && !(nixpkgs.lib.hasPrefix "_" file.name))
-          path);
+      import-tree =
+        path: toList (fileFilter (file: file.hasExt "nix" && !(nixpkgs.lib.hasPrefix "_" file.name)) path);
     in
-    flake-parts.lib.mkFlake { inherit inputs; }     {
+    flake-parts.lib.mkFlake { inherit inputs; } {
       imports = import-tree ./modules;
     };
 }

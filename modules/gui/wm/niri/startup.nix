@@ -19,9 +19,17 @@
         startup = [
           [
             "${lib.getExe' pkgs.dbus "dbus-update-activation-environment"}"
-            "--systemd" "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP"
+            "--systemd"
+            "DISPLAY"
+            "WAYLAND_DISPLAY"
+            "XDG_CURRENT_DESKTOP"
           ]
-          [ "systemctl" "--user" "start" "niri-session.target" ]
+          [
+            "systemctl"
+            "--user"
+            "start"
+            "niri-session.target"
+          ]
         ];
         startupSh = [ ];
       };
