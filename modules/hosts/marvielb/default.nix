@@ -34,6 +34,11 @@
           gui_foot
           gui_keepassxc
           gui_logseq
+          gui_obs-studio
+          gui_obsidian
+          gui_pear-desktop
+          gui_pureref
+          gui_zathura
 
           # Shell — CLI/TUI tools
           shell_git
@@ -45,9 +50,11 @@
           shell_fastfetch
           shell_tmux
           shell_direnv
+          shell_starship
 
           # Services — background daemons
           services_syncthing
+          services_docker
 
           # Security
           security_sops-nix
