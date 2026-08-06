@@ -20,6 +20,9 @@
           stylix
           home-manager
 
+          # Hardware
+          hardware_bluetooth
+
           # Auth
           auth_lemurs
 

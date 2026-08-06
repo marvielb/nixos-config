@@ -6,7 +6,6 @@ in
   custom.persist = {
     root.directories = [
       "/etc/nixos"
-      "/var/lib/bluetooth"
       {
         directory = "/var/lib/nixos";
         inInitrd = true;
