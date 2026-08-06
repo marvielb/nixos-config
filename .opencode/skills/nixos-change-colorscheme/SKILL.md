@@ -23,7 +23,6 @@ that reads the option):
 | `custom.colorscheme`   | base16 filename          | Both? |
 |------------------------|--------------------------|-------|
 | `catppuccin-mocha`     | catppuccin-mocha.yaml    | Yes   |
-| `kanagawa`             | kanagawa.yaml            | Yes   |
 | `tokyonight-day`       | tokyo-night-day.yaml     | No    |
 | `tokyonight-moon`      | tokyo-night-moon.yaml    | No    |
 | `tokyonight-night`     | tokyo-night-night.yaml   | No    |

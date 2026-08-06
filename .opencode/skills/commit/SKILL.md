@@ -52,7 +52,8 @@ fix(hosts/mars): correct timezone offset
 refactor(preservation): extract persistence map to helper
 ```
 
-Good scopes for this repo: `disko`, `preservation`, `hosts/<name>`, `programs/<name>`, `services/<name>`, `flake`, `deps`.
+Good scopes for this repo: `auth`, `disko`, `preservation`, `hosts/<name>`, `shell/<name>`,
+`gui/<name>`, `services/<name>`, `side_projects/<name>`, `opencode`, `deps`.
 
 ## Subject
 
@@ -130,8 +131,9 @@ refactor(preservation): extract persistence map to helper
 docs(hosts/mars): add network topology notes
 chore(deps): bump nixpkgs-unstable to 2026-06-12
 style: reformat with nixfmt
-feat(programs/neovim): enable LSP for Rust
+feat(shell/lazyvim): enable LSP for Rust
 fix(services/job-rss): handle empty feed gracefully
+feat(opencode): wire one-shot protocol to nixos-research agent
 ```
 
 ## Bad Examples (Avoid)

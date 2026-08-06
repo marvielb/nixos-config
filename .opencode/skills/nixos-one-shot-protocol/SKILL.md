@@ -20,10 +20,15 @@ front and presented in a single response, avoiding half-baked iterative edits.
 
 ## Parallel Execution
 
-Steps 1-3 are independent. Dispatch them in **parallel** with the `task` tool:
+Steps 1-3 are independent. Dispatch them in **parallel** with the `task` tool
+to the `nixos-research` subagent (its three research tracks map 1:1 to the
+steps below):
 
-- Step 1 → `explore` / `general`: grep RESEARCH.md for relevant cached findings
-- Step 2 → `scout`: fetch/analyze the reference repo for the pattern
-- Step 3 → `explore`: find all similar existing modules and their conventions
+- Step 1 → `nixos-research`: grep RESEARCH.md for relevant cached findings (track 1)
+- Step 2 → `nixos-research`: fetch/analyze the reference repo for the pattern (track 2)
+- Step 3 → `nixos-research`: find all similar existing modules and their conventions (track 3)
+
+You may also dispatch `explore` for broader codebase search, but `nixos-research`
+is preferred — it returns repo-specific findings and a reusable-pattern summary.
 
 Synthesize the results into the complete file plan before writing anything.
