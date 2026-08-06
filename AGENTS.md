@@ -5,6 +5,11 @@ flake-parts module, auto-discovered via `import-tree`. Files prefixed with `_` a
 (private helpers). Modules register themselves into a named catalog, and hosts explicitly pick
 what they want — no mystery meat, no accidental cross-contamination.
 
+> **Procedural workflows** (adding features/hosts, secrets, colorscheme, option lookup,
+> one-shot protocol) live in `.opencode/skills/nixos-*/SKILL.md` — loaded on demand. See
+> `~/.config/opencode/skills/` reference. `RESEARCH.md` and `INSTALL.md` are auto-loaded
+> via `opencode.jsonc` `instructions`.
+
 ## Entry Point (`flake.nix`)
 
 Minimal — just 3 moving parts:
@@ -281,26 +286,6 @@ You can `diff` two host files and immediately see what differs.
 | `home-manager.sharedModules` in NixOS module | Inject HM config for **all** users from a single NixOS catalog entry — primary mechanism for user-level features |
 | `programs.<name>` via `home-manager.sharedModules` | Prefer HM modules over `environment.systemPackages` — HM-integrated programs can be themed by stylix (and other HM-aware tools). Stylix injects via `home-manager.sharedModules`, so only HM-managed programs benefit. |
 
-## Option Lookup — Choose the Right Source
-
-The MCP search tool queries different sources depending on what you pass:
-
-| What you're looking for | `action` | `type` / `source` |
-|---|---|---|
-| NixOS option (e.g. `services.nginx.enable`) | search | `type: options` |
-| Home Manager option (e.g. `programs.bash.*`) | search | `source: home-manager` |
-| Stylix target options (`stylix.targets.<name>.*`) | search | `source: home-manager` |
-| Nix packages | search/info | `type: packages` (default) |
-| Option details / exact declaration | info | `type: option` (NixOS) |
-
-**Stylix targets** (`stylix.targets.<name>.*`) are **Home Manager options** — search with
-`source: home-manager`, not `type: options`. The stylix docs at
-https://nix-community.github.io/stylix/ are the authoritative reference.
-
-**`stylix.autoEnable = true`** (set in `modules/stylix.nix`) enables theming for all
-supported targets automatically. Before manually adding `stylix.targets.<name>.enable`,
-check whether the target is already covered by `autoEnable`.
-
 ## Per-Feature Persistence (`custom.persist`)
 
 Each feature module declares what files/directories it needs to persist, not a monolithic config:
@@ -381,37 +366,6 @@ Core (`configuration.nix`) declares the `options.custom.persist` submodule with
 `root.files`, `home.directories` and `home.files` (flat lists merged into
 every user by the collector), and `users.<name>.{directories,files}` (per-user entries).
 
-## Adding a New Feature
-
-Two paths depending on the feature's domain:
-
-### Home Manager Feature (user-level app config)
-
-If the feature has a Home Manager module (alacritty, lazygit, keepassxc, etc.):
-
-1. Create `modules/<category>/<name>/default.nix`
-2. Add `flake.modules.nixos.<name> = { ... }` with `home-manager.sharedModules` wrapping the HM config
-3. Add `<name>` to each host's NixOS `imports`
-4. Done — no edits to `flake.nix` or import lists
-
-### NixOS Feature (system-level)
-
-If the feature is system-level (services, hardware, window managers, boot config):
-
-1. Create `modules/<category>/<name>.nix` (or `/services/`, `/hardware/`, etc.)
-2. Add `flake.modules.nixos.<name> = { ... }` with your NixOS config
-3. Add `<name>` to each host's NixOS `imports`
-4. Done — no edits to `flake.nix` or import lists
-
-## Adding a New Host
-
-1. Create `modules/hosts/<hostname>/default.nix` with `./_hardware.nix` import (see template above)
-2. Add `flake.modules.nixos.host_<hostname>` with desired imports from the catalog
-3. Add `home-manager.users.<username>` block with `home.stateVersion` derived from `osConfig.system.stateVersion`
-4. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
-5. Create `_disko.nix` and `_preservation.nix` in the host directory (or clone from an existing host). Each should import its own external flake module (e.g. `inputs.disko.nixosModules.disko`, `inputs.preservation.nixosModules.default`) to stay self-contained.
-6. Create `_hardware.nix` as a `throw` stub — the build will fail with a clear message until nixos-anywhere generates the real config on first deploy (see INSTALL.md for the full workflow)
-
 ## Git — Must Stage Before Testing
 
 Nix flakes read from the **git index**, not the working tree. Any new or modified `.nix` file
@@ -420,62 +374,6 @@ must be `git add`-ed before `nix flake check` / `nix build` will see it.
 ```bash
 git add modules/path/to/new-file.nix
 ```
-
-## Secret Management (sops-nix)
-
-sops-nix with age encryption, using **SSH host keys** as age keys (no separate age key
-to manage). Auto-generated SSH keys are the source of encryption — `ssh-to-age` derives
-the age public key from them.
-
-### Bootstrap a New Machine
-
-Three commands, only on first deploy:
-
-```bash
-just deploy <host>            # 1. Deploy sops-nix module (no secrets yet)
-just get-key <host>           # 2. Extract age pubkey → update .sops.yaml → rekey existing secrets
-just edit-secret <path>       # 3. Create/edit encrypted secrets
-git add -A && just deploy <host>  # Redeploy — secrets decrypted automatically
-```
-
-`just get-key` does three things:
-1. SSHes into the target, runs `ssh-to-age` against its SSH host key
-2. Appends the age key to `.sops.yaml` creation rules
-3. Runs `sops updatekeys` on all existing `secrets.yaml` files to re-encrypt them for the new key
-
-### Everyday Workflow
-
-Once bootstrapped, all future secret changes are single-step:
-
-```bash
-just edit-secret modules/foo/secrets.yaml  # edit + re-encrypt
-just deploy <host>                         # secrets decrypted at activation
-```
-
-### Adding a New Machine
-
-Same as bootstrap: `just deploy <newhost>` → `just get-key <newhost>` → `just deploy <newhost>`.
-The `get-key` step automatically rekeys all existing secrets so every machine can decrypt them.
-
-### How Decryption Works
-
-`sops-nix` reads `/etc/ssh/ssh_host_ed25519_key` at activation time via
-`sops.age.sshKeyPaths`. This key matches the corresponding `age1...` public key
-in `.sops.yaml`. No separate age key file is needed on the target machine.
-
-### Secret File Convention
-
-Per-module: `modules/<category>/<name>/secrets.yaml`
-Shared: `.sops.yaml` at repo root defines which keys encrypt which paths.
-
-### .sops.yaml Format
-
-```yaml
-creation_rules:
-  - age: age1practice..., age1portfolio...
-```
-
-Single flat list — all keys can decrypt all secrets. Add new keys via `just get-key`.
 
 ## Build Commands
 
@@ -492,39 +390,6 @@ just update         # update flake.lock
 
 HM config is bundled into the NixOS build — `just switch` applies both system and
 user configs in one command. No separate `home-manager switch` needed.
-
-## Changing the Colorscheme
-
-The canonical colorscheme name lives in `modules/configuration.nix` under
-`custom.colorscheme`. To switch themes globally (stylix + neovim + anything else
-that reads the option):
-
-1. Set `custom.colorscheme` in `configuration.nix` to the lazyvim-style name
-   (e.g. `"tokyonight-night"`)
-2. If stylix needs a different filename, add the mapping in `modules/stylix.nix`
-3. Rebuild: `just switch`
-
-Canonical name → base16 mapping reference:
-
-| `custom.colorscheme`   | base16 filename          | Both? |
-|------------------------|--------------------------|-------|
-| `catppuccin-mocha`     | catppuccin-mocha.yaml    | Yes   |
-| `kanagawa`             | kanagawa.yaml            | Yes   |
-| `tokyonight-day`       | tokyo-night-day.yaml     | No    |
-| `tokyonight-moon`      | tokyo-night-moon.yaml    | No    |
-| `tokyonight-night`     | tokyo-night-night.yaml   | No    |
-| `tokyonight-storm`     | tokyo-night-storm.yaml   | No    |
-
-If you add a theme that isn't in the mapping, the build will fail with a clear
-`throw` error telling you to update `modules/stylix.nix`.
-
-## Before Adding a New Module — One-Shot Protocol
-
-1. Check `RESEARCH.md` for cached findings on the relevant pattern/feature
-2. If not found, check the reference repo (https://github.com/k1ng440/dotfiles.nix) for inspiration on structure, conventions, and persistence
-3. **Determine the complete set of files needed** — every file to create and every file to modify — by examining all relevant existing patterns in the repo first
-4. Present the full plan (create + modify files with contents) in a single response
-5. Append new general findings to `RESEARCH.md` so they're cached for future sessions
 
 ## References
 
