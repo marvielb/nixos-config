@@ -1,4 +1,4 @@
-{ ... }: {
+_: {
   flake.modules.nixos.gui_niri = { lib, pkgs, ... }: {
     options.custom.niri = {
       startup = lib.mkOption {

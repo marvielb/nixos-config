@@ -1,11 +1,7 @@
-{ config, inputs, ... }@top:
-{
+top: {
   flake.modules.nixos.host_portfolio =
     {
       pkgs,
-      lib,
-      modulesPath,
-      inputs,
       ...
     }:
     {
@@ -16,12 +12,12 @@
           shell_nh
           side_projects_lazy-email
           side_projects_job-rss
+          preservation
+          security_sops-nix
         ]
         ++ [
-          inputs.disko.nixosModules.disko
-          inputs.preservation.nixosModules.default
-          ./_disko.nix
-          ./_preservation.nix
+          # Private host-specific modules (imported by relative path)
+          ../_disko.nix
         ];
 
       boot.loader.grub.enable = true;
@@ -30,6 +26,28 @@
 
       time.timeZone = "Asia/Manila";
       i18n.defaultLocale = "en_US.UTF-8";
+
+      custom = {
+        disko.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0";
+
+        persist = {
+          root.directories = [
+            "/etc/nixos"
+            {
+              directory = "/var/lib/nixos";
+              inInitrd = true;
+            }
+            "/var/lib/systemd/timers"
+            "/var/log"
+            {
+              directory = "/etc/ssh";
+              inInitrd = true;
+            }
+          ];
+          root.files = [ "/etc/machine-id" ];
+          users.portfolio.directories = [ ".ssh" ];
+        };
+      };
 
       users.users.portfolio = {
         isNormalUser = true;

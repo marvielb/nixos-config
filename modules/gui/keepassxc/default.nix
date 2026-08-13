@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.gui_keepassxc = { ... }: {
+_: {
+  flake.modules.nixos.gui_keepassxc = _: {
     home-manager.sharedModules = [
       {
         programs.keepassxc = {

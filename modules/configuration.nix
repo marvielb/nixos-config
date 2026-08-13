@@ -1,8 +1,7 @@
-{ ... }: {
+_: {
   flake.modules.nixos.core =
     {
       config,
-      pkgs,
       lib,
       ...
     }:

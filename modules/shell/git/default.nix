@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.shell_git = { ... }: {
+_: {
+  flake.modules.nixos.shell_git = _: {
     home-manager.sharedModules = [
       (
         { osConfig, ... }:

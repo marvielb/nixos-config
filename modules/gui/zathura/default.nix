@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.gui_zathura = { ... }: {
+_: {
+  flake.modules.nixos.gui_zathura = _: {
     home-manager.sharedModules = [
       ({ pkgs, ... }: {
         programs.zathura.enable = true;

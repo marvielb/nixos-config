@@ -1,67 +1,27 @@
-{
-  config,
-  inputs,
-  lib,
-  ...
-}@top:
-{
+top: {
   flake.modules.nixos.host_practice =
     {
       pkgs,
-      modulesPath,
-      inputs,
       ...
     }:
     {
       imports =
         with top.config.flake.modules.nixos;
         [
-          # Foundation
-          stylix
-          home-manager
+          # Foundation + desktop catalog
+          profile_desktop
+          preservation
+
+          # Hardware
+          hardware_qemu
+          hardware_audio
 
           # Auth
           auth_lemurs
-
-          # GUI — windowing, display, GUI apps
-          gui_niri
-          gui_noctalia
-          gui_browsers_zen-browser
-          gui_thunar
-          gui_foot
-          gui_keepassxc
-          gui_logseq
-          gui_obs-studio
-          gui_obsidian
-          gui_pear-desktop
-          gui_pureref
-          gui_zathura
-
-          # Shell — CLI/TUI tools
-          shell_git
-          shell_lazygit
-          shell_lazyvim
-          shell_rclone
-          shell_nh
-          shell_htop
-          shell_fastfetch
-          shell_tmux
-          shell_direnv
-          shell_starship
-
-          # Services — background daemons
-          services_syncthing
-          services_docker
-
-          # Security
-          security_sops-nix
         ]
         ++ [
-          inputs.disko.nixosModules.disko
-          inputs.preservation.nixosModules.default
-          hardware_qemu
-          ./_disko.nix
-          ./_preservation.nix
+          # Private host-specific modules (imported by relative path)
+          ../_disko.nix
         ];
 
       boot.loader.grub.enable = true;
@@ -79,6 +39,26 @@
         git.identity = {
           userName = "marvielb";
           userEmail = "marvielb@gmail.com";
+        };
+
+        disko.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0";
+
+        persist = {
+          root.directories = [
+            "/etc/nixos"
+            {
+              directory = "/var/lib/nixos";
+              inInitrd = true;
+            }
+            "/var/lib/systemd/timers"
+            "/var/log"
+            {
+              directory = "/etc/ssh";
+              inInitrd = true;
+            }
+          ];
+          root.files = [ "/etc/machine-id" ];
+          users.practice.directories = [ ".ssh" ];
         };
       };
 

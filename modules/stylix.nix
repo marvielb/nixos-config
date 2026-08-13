@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.modules.nixos.stylix = { pkgs, lib, ... }: {
+  flake.modules.nixos.stylix = { pkgs, ... }: {
     imports = [ inputs.stylix.nixosModules.stylix ];
 
     home-manager.sharedModules = [

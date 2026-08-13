@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.auth_lemurs = { config, ... }: {
+_: {
+  flake.modules.nixos.auth_lemurs = _: {
     services.displayManager.lemurs = {
       enable = true;
       settings = {
@@ -9,6 +9,6 @@
       };
     };
 
-    custom.persist.root.files = [ "/var/cache/lemurs" ];
+    custom.persist.root.directories = [ "/var/cache/lemurs" ];
   };
 }

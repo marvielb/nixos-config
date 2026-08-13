@@ -1,4 +1,4 @@
-{ ... }: {
+_: {
   flake.modules.nixos.shell_tmux = { pkgs, ... }: {
     programs.tmux = {
       enable = true;

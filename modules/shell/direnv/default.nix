@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.shell_direnv = { ... }: {
+_: {
+  flake.modules.nixos.shell_direnv = _: {
     home-manager.sharedModules = [
       {
         programs.bash = {

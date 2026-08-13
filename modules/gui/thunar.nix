@@ -1,4 +1,4 @@
-{ ... }: {
+_: {
   flake.modules.nixos.gui_thunar = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
       thunar

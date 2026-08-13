@@ -29,12 +29,8 @@ cd /path/to/config
 
 ### For a VM test
 
-Override the disk device before running:
-
-```bash
-sed -i 's|nvme-PNY_CS3030_500GB_SSD_PNY48200266260101A28|vda|' \
-  modules/hosts/marvielb/_disko.nix
-```
+Override the disk device before running (edit `custom.disko.device` in
+`modules/hosts/marvielb/default.nix`, e.g. change the `nvme-…` device to `vda`).
 
 ### Run nixos-anywhere
 
@@ -97,10 +93,10 @@ just deploy marvielb
    nixos-anywhere — this generates `_hardware.nix` with the correct `virtio`
    kernel modules for the VM automatically
 
-After confirming the VM works, restore `_disko.nix`:
+After confirming the VM works, restore `custom.disko.device`:
 
 ```bash
-git checkout modules/hosts/marvielb/_disko.nix
+git checkout modules/hosts/marvielb/default.nix
 ```
 
-Then install on bare metal — same command, just different IP and no `sed`.
+Then install on bare metal — same command, just different IP and no device edit.

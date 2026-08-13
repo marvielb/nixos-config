@@ -5,10 +5,6 @@
     sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
     sops.age.keyFile = null;
 
-    sops.secrets.sample_secret = {
-      sopsFile = ./test/secrets.yaml;
-    };
-
     environment.systemPackages = with pkgs; [
       sops
       ssh-to-age

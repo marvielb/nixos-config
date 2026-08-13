@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.services_syncthing = { ... }: {
+_: {
+  flake.modules.nixos.services_syncthing = _: {
     home-manager.sharedModules = [
       {
         services.syncthing = {

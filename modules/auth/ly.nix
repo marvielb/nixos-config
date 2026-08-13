@@ -1,5 +1,5 @@
-{ lib, ... }: {
-  flake.modules.nixos.auth_ly = { config, ... }: {
+_: {
+  flake.modules.nixos.auth_ly = _: {
     services.displayManager.ly = {
       enable = true;
       settings = {

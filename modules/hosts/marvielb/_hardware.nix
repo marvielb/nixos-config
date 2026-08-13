@@ -9,4 +9,4 @@
 # Keeping this a no-op (instead of a `throw`) lets `nix flake check`
 # evaluate the host without a real machine; the generated config's
 # fileSystems block is safely overridden by _disko.nix.
-{ ... }: { }
+_: { }

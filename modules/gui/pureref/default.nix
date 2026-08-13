@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.gui_pureref = { ... }: {
+_: {
+  flake.modules.nixos.gui_pureref = _: {
     home-manager.sharedModules = [
       ({ pkgs, ... }: {
         home.packages = [ pkgs.pureref ];

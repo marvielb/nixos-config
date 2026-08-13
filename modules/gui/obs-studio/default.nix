@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.gui_obs-studio = { ... }: {
+_: {
+  flake.modules.nixos.gui_obs-studio = _: {
     home-manager.sharedModules = [
       {
         programs.obs-studio.enable = true;

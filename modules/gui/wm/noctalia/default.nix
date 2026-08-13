@@ -1,8 +1,7 @@
-{ inputs, lib, ... }: {
+{ inputs, ... }: {
   flake.modules.nixos.gui_noctalia =
     {
       pkgs,
-      config,
       lib,
       ...
     }:
@@ -99,28 +98,30 @@
         noctalia-diff
       ];
 
-      custom.persist.home.directories = [
-        ".config/noctalia"
-        ".cache/noctalia"
-      ];
-
-      custom.niri.settings = {
-        layer-rules = [
-          {
-            matches = [ { namespace = "^noctalia-background-.*$"; } ];
-            background-effect.blur = true;
-          }
+      custom = {
+        persist.home.directories = [
+          ".config/noctalia"
+          ".cache/noctalia"
         ];
-        window-rules = [
-          {
-            matches = [ { app-id = "^dev.noctalia.noctalia-qs$"; } ];
-            background-effect.blur = true;
-          }
+
+        niri.settings = {
+          layer-rules = [
+            {
+              matches = [ { namespace = "^noctalia-background-.*$"; } ];
+              background-effect.blur = true;
+            }
+          ];
+          window-rules = [
+            {
+              matches = [ { app-id = "^dev.noctalia.noctalia-qs$"; } ];
+              background-effect.blur = true;
+            }
+          ];
+        };
+
+        niri.startup = lib.mkAfter [
+          [ "noctalia-start" ]
         ];
       };
-
-      custom.niri.startup = lib.mkAfter [
-        [ "noctalia-start" ]
-      ];
     };
 }

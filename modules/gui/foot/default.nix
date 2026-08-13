@@ -1,5 +1,5 @@
-{ ... }: {
-  flake.modules.nixos.gui_foot = { ... }: {
+_: {
+  flake.modules.nixos.gui_foot = _: {
     home-manager.sharedModules = [
       ({ lib, ... }: {
         programs.foot = {

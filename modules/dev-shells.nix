@@ -1,9 +1,7 @@
-{ ... }: {
+_: {
   perSystem =
     {
-      config,
       pkgs,
-      self',
       ...
     }:
     {

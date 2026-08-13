@@ -15,38 +15,81 @@
       projectUser = "${app}-jobs";
     in
     {
+      sops.secrets.job_rss_app_key = {
+        sopsFile = ./secrets.yaml;
+      };
+
+      sops.templates."job-rss.env" = {
+        content = "APP_KEY=${config.sops.placeholder.job_rss_app_key}";
+        mode = "0440";
+      };
+
       custom.persist.root = {
         directories = [ appDir ];
         files = [ databaseFile ];
       };
 
-      services.nginx = {
-        enable = true;
-        virtualHosts.${domain} = {
-          root = "${appPkg}/share/php/job-rss/public";
-          extraConfig = ''
-            add_header X-Frame-Options "SAMEORIGIN";
-            add_header X-XSS-Protection "1; mode=block";
-            add_header X-Content-Type-Options "nosniff";
-            index index.html index.htm index.php;
-            error_page 404 /index.php;
+      services = {
+        nginx = {
+          enable = true;
+          virtualHosts.${domain} = {
+            root = "${appPkg}/share/php/job-rss/public";
+            extraConfig = ''
+              add_header X-Frame-Options "SAMEORIGIN";
+              add_header X-XSS-Protection "1; mode=block";
+              add_header X-Content-Type-Options "nosniff";
+              index index.html index.htm index.php;
+              error_page 404 /index.php;
+            '';
+            locations = {
+              "/".tryFiles = "$uri $uri/ /index.php$is_args$args";
+              "/favicon.ico".extraConfig = ''
+                access_log off; log_not_found off;
+              '';
+              "/robots.txt".extraConfig = ''
+                access_log off; log_not_found off;
+              '';
+              "~ \\.php$".extraConfig = ''
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_pass unix:${config.services.phpfpm.pools.${app}.socket};
+                fastcgi_index index.php;
+                include ${pkgs.nginx}/conf/fastcgi.conf;
+              '';
+              "~ /\\.(?!well-known).*".extraConfig = ''
+                deny all;
+              '';
+            };
+          };
+        };
+
+        phpfpm = {
+          phpOptions = ''
+            opcache.enable=0
+            variables_order = "EGPCS"
           '';
-          locations."/".tryFiles = "$uri $uri/ /index.php$is_args$args";
-          locations."/favicon.ico".extraConfig = ''
-            access_log off; log_not_found off;
-          '';
-          locations."/robots.txt".extraConfig = ''
-            access_log off; log_not_found off;
-          '';
-          locations."~ \\.php$".extraConfig = ''
-            fastcgi_split_path_info ^(.+\.php)(/.+)$;
-            fastcgi_pass unix:${config.services.phpfpm.pools.${app}.socket};
-            fastcgi_index index.php;
-            include ${pkgs.nginx}/conf/fastcgi.conf;
-          '';
-          locations."~ /\\.(?!well-known).*".extraConfig = ''
-            deny all;
-          '';
+
+          pools.${app} = {
+            user = projectUser;
+            group = config.services.nginx.group;
+            phpPackage = pkgs.php83;
+            settings = {
+              "listen.owner" = config.services.nginx.user;
+              "pm" = "dynamic";
+              "pm.max_children" = 32;
+              "pm.max_requests" = 500;
+              "pm.start_servers" = 1;
+              "pm.min_spare_servers" = 1;
+              "pm.max_spare_servers" = 1;
+              "clear_env" = "no";
+              "php_admin_value[error_log]" = "stderr";
+              "php_admin_flag[log_errors]" = true;
+              "catch_workers_output" = true;
+              "env[DB_CONNECTION]" = ''"sqlite"'';
+              "env[DB_DATABASE]" = ''"${databaseFile}"'';
+              "env[LARAVEL_STORAGE_PATH]" = ''"${appDir}/storage"'';
+            };
+            phpEnv."PATH" = lib.makeBinPath [ pkgs.php83 ];
+          };
         };
       };
 
@@ -55,33 +98,9 @@
         group = config.services.nginx.group;
       };
 
-      services.phpfpm.phpOptions = ''
-        opcache.enable=0
-        variables_order = "EGPCS"
-      '';
-
-      services.phpfpm.pools.${app} = {
-        user = projectUser;
-        group = config.services.nginx.group;
-        phpPackage = pkgs.php83;
-        settings = {
-          "listen.owner" = config.services.nginx.user;
-          "pm" = "dynamic";
-          "pm.max_children" = 32;
-          "pm.max_requests" = 500;
-          "pm.start_servers" = 1;
-          "pm.min_spare_servers" = 1;
-          "pm.max_spare_servers" = 1;
-          "php_admin_value[error_log]" = "stderr";
-          "php_admin_flag[log_errors]" = true;
-          "catch_workers_output" = true;
-          "env[APP_KEY]" = ''"base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="'';
-          "env[DB_CONNECTION]" = ''"sqlite"'';
-          "env[DB_DATABASE]" = ''"${databaseFile}"'';
-          "env[LARAVEL_STORAGE_PATH]" = ''"${appDir}/storage"'';
-        };
-        phpEnv."PATH" = lib.makeBinPath [ pkgs.php83 ];
-      };
+      systemd.services."phpfpm-${app}".serviceConfig.EnvironmentFile = [
+        config.sops.templates."job-rss.env".path
+      ];
 
       system.activationScripts.jobRssStorage = {
         text = ''
@@ -96,11 +115,14 @@
         text = ''
           echo "job-rss: running deploy setup..."
 
+          set -a
+          . ${config.sops.templates."job-rss.env".path}
+          set +a
+
           cd ${appPkg}/share/php/job-rss
           export LARAVEL_STORAGE_PATH="${appDir}/storage"
           export DB_CONNECTION=sqlite
           export DB_DATABASE="${databaseFile}"
-          export APP_KEY="base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="
 
           PHP="${pkgs.php83}/bin/php -d variables_order=EGPCS"
 
@@ -136,6 +158,7 @@
         deps = [
           "users"
           "jobRssStorage"
+          "setupSecrets"
         ];
       };
 
@@ -147,11 +170,11 @@
           Type = "simple";
           User = projectUser;
           WorkingDirectory = "${appPkg}/share/php/job-rss";
+          EnvironmentFile = [ config.sops.templates."job-rss.env".path ];
           Environment = [
             "LARAVEL_STORAGE_PATH=${appDir}/storage"
             "DB_CONNECTION=sqlite"
             "DB_DATABASE=${databaseFile}"
-            "APP_KEY=base64:HzERkk6bmC2n4vOUz+ANQis0qlqia5ouP3rwq/U8mBA="
             "QUEUE_CONNECTION=database"
             "PATH=${lib.makeBinPath [ pkgs.php83 ]}"
           ];
