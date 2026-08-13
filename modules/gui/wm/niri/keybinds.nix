@@ -61,11 +61,11 @@
         "Mod+R".switch-preset-column-width = _: { };
         "Mod+Shift+R".switch-preset-window-height = _: { };
 
-        # Screenshot
+        # Screenshot — region → annotate in satty
         "Print".spawn = [
           "${pkgs.bash}/bin/bash"
           "-c"
-          "${pkgs.grimblast}/bin/grimblast save area | ${pkgs.swappy}/bin/swappy -f -"
+          "${pkgs.slurp}/bin/slurp -d | ${pkgs.grim}/bin/grim -g - - | ${pkgs.satty}/bin/satty --filename - --copy-command '${pkgs.wl-clipboard}/bin/wl-copy' --output-filename ~/Pictures/Screenshots/satty-%Y-%m-%d_%H-%M-%S.png"
         ];
 
         # Volume
