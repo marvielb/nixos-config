@@ -52,6 +52,21 @@ This single command:
 6. Copies the closure and runs `nixos-install`
 7. Prompts you to set the root password
 
+### LUKS-encrypted install (marvielb)
+
+`marvielb` sets `custom.disko.encrypt = true`, so the root partition is LUKS2.
+Run the command from an interactive terminal — disko will **prompt for the LUKS
+passphrase** during partitioning. At every boot, GRUB loads the kernel from the
+unencrypted ESP (`/boot`) and the initrd prompts for the passphrase to unlock
+`cryptroot`. If the interactive prompt doesn't forward over SSH, temporarily
+set `passwordFile = "/tmp/luks.key"` in the luks block of
+`modules/hosts/_disko.nix`, pre-seed that file on the target, install, then
+remove it (boot becomes interactive again).
+
+Swap is an 8G btrfs swapfile inside the encrypted container (auto-created by
+NixOS on first boot via `btrfs filesystem mkswapfile`) — no separate swap
+partition, and no hibernation.
+
 ## 4. Commit the generated hardware config
 
 After the install finishes, `_hardware.nix` contains the full hardware config

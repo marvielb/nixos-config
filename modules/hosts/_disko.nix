@@ -4,6 +4,38 @@
   lib,
   ...
 }:
+let
+  btrfsRoot = {
+    type = "btrfs";
+    extraArgs = [ "-f" ];
+
+    subvolumes = {
+      "/persistent" = {
+        mountOptions = [
+          "subvol=persistent"
+          "noatime"
+        ];
+        mountpoint = "/persistent";
+      };
+
+      "/nix" = {
+        mountOptions = [
+          "subvol=nix"
+          "noatime"
+        ];
+        mountpoint = "/nix";
+      };
+
+      "/swap" = {
+        mountOptions = [
+          "subvol=swap"
+          "noatime"
+        ];
+        mountpoint = "/swap";
+      };
+    };
+  };
+in
 {
   imports = [ inputs.disko.nixosModules.disko ];
 
@@ -13,9 +45,14 @@
       description = "Disk device path (e.g. /dev/disk/by-id/...)";
     };
     swapSize = lib.mkOption {
-      type = lib.types.str;
-      default = "4G";
-      description = "Swap partition size";
+      type = lib.types.int;
+      default = 4096;
+      description = "Swapfile size in MiB";
+    };
+    encrypt = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Encrypt the root partition with LUKS";
     };
   };
 
@@ -58,45 +95,35 @@
               };
             };
 
-            swap = {
-              size = config.custom.disko.swapSize;
-
-              content = {
-                type = "swap";
-                resumeDevice = true;
-              };
-            };
-
             root = {
               name = "root";
               size = "100%";
 
-              content = {
-                type = "btrfs";
-                extraArgs = [ "-f" ];
-
-                subvolumes = {
-                  "/persistent" = {
-                    mountOptions = [
-                      "subvol=persistent"
-                      "noatime"
-                    ];
-                    mountpoint = "/persistent";
-                  };
-
-                  "/nix" = {
-                    mountOptions = [
-                      "subvol=nix"
-                      "noatime"
-                    ];
-                    mountpoint = "/nix";
-                  };
-                };
-              };
+              content =
+                if config.custom.disko.encrypt then
+                  {
+                    type = "luks";
+                    name = "cryptroot";
+                    settings = {
+                      allowDiscards = true;
+                    };
+                    content = btrfsRoot;
+                  }
+                else
+                  btrfsRoot;
             };
           };
         };
       };
     };
+
+    # Btrfs swapfile inside the (encrypted) root. NixOS auto-creates it with
+    # `btrfs filesystem mkswapfile` (nodatacow) on first boot and swapon's it.
+    swapDevices = [
+      {
+        device = "/swap/swapfile";
+        size = config.custom.disko.swapSize;
+      }
+    ];
   };
 }

@@ -13,7 +13,7 @@ metadata:
 2. Add `flake.modules.nixos.host_<hostname>` with desired imports from the catalog
 3. Add `home-manager.users.<username>` block with `home.stateVersion` derived from `osConfig.system.stateVersion`
 4. Add `<hostname> = mkNixos "<hostname>" {};` in `modules/hosts/nixos.nix`
-5. Set `custom.disko` (device path + optional `swapSize`) inline in the host — the shared `../_disko.nix` helper (imports `inputs.disko.nixosModules.disko` itself) builds the disk layout from it
+5. Set `custom.disko` (device path + optional `swapSize` in MiB + optional `encrypt = true`) inline in the host — the shared `../_disko.nix` helper (imports `inputs.disko.nixosModules.disko` itself) builds the disk layout from it. When `encrypt = true`, the root partition is LUKS2 and swap is a btrfs swapfile inside the container.
 6. Inline the host's `custom.persist` block (root dirs/files + `users.<username>`). Hosts import `preservation` from the catalog for the collector — no per-host `_preservation.nix` needed
 7. Create `_hardware.nix` as a no-op stub (`{ ... }: { }`) — keeping it a no-op (instead of a `throw`) lets `nix flake check` evaluate the host without a real machine. nixos-anywhere overwrites it with the real `nixos-generate-config` output on first deploy (see INSTALL.md for the full workflow)
 
@@ -38,7 +38,7 @@ top: {
 
     custom.disko = {
       device = "/dev/disk/by-id/<device>";
-      swapSize = "8G";
+      swapSize = 8192;
     };
 
     custom.persist = {
