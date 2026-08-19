@@ -63,9 +63,9 @@ set `passwordFile = "/tmp/luks.key"` in the luks block of
 `modules/hosts/_disko.nix`, pre-seed that file on the target, install, then
 remove it (boot becomes interactive again).
 
-Swap is an 8G btrfs swapfile inside the encrypted container (auto-created by
-NixOS on first boot via `btrfs filesystem mkswapfile`) — no separate swap
-partition, and no hibernation.
+Swap is a separate unencrypted partition (8G for marvielb) outside the LUKS
+container, with hibernation disabled (`resumeDevice = false`). Only the root
+partition is encrypted.
 
 ## 4. Commit the generated hardware config
 

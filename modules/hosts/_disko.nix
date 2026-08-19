@@ -25,14 +25,6 @@ let
         ];
         mountpoint = "/nix";
       };
-
-      "/swap" = {
-        mountOptions = [
-          "subvol=swap"
-          "noatime"
-        ];
-        mountpoint = "/swap";
-      };
     };
   };
 in
@@ -45,9 +37,9 @@ in
       description = "Disk device path (e.g. /dev/disk/by-id/...)";
     };
     swapSize = lib.mkOption {
-      type = lib.types.int;
-      default = 4096;
-      description = "Swapfile size in MiB";
+      type = lib.types.str;
+      default = "4G";
+      description = "Swap partition size";
     };
     encrypt = lib.mkOption {
       type = lib.types.bool;
@@ -95,6 +87,15 @@ in
               };
             };
 
+            swap = {
+              size = config.custom.disko.swapSize;
+
+              content = {
+                type = "swap";
+                resumeDevice = false;
+              };
+            };
+
             root = {
               name = "root";
               size = "100%";
@@ -116,14 +117,5 @@ in
         };
       };
     };
-
-    # Btrfs swapfile inside the (encrypted) root. NixOS auto-creates it with
-    # `btrfs filesystem mkswapfile` (nodatacow) on first boot and swapon's it.
-    swapDevices = [
-      {
-        device = "/swap/swapfile";
-        size = config.custom.disko.swapSize;
-      }
-    ];
   };
 }
