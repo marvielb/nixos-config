@@ -1,13 +1,9 @@
 { config, ... }: {
   flake.modules.nixos.profile_desktop = _: {
     imports = with config.flake.modules.nixos; [
-      # Foundation
-      stylix
-      home-manager
+      profile_desktop_minimal
 
-      # GUI — windowing, display, GUI apps
-      gui_niri
-      gui_noctalia
+      # GUI apps
       gui_browsers_zen-browser
       gui_thunar
       gui_foot

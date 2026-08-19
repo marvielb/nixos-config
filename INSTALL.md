@@ -52,6 +52,29 @@ This single command:
 6. Copies the closure and runs `nixos-install`
 7. Prompts you to set the root password
 
+### Minimal-first install (recommended to avoid RAM pressure)
+
+Each desktop host exposes a `-minimal` flake output that only pulls the lean
+profile (`stylix`, `home-manager`, `gui_niri`, `gui_noctalia`) plus the host's
+own hardware/auth/persistence — no browser, editor, or GUI-app blast radius.
+Install that first (small closure, low RAM on both source and target), then
+graduate to the full desktop with a normal switch:
+
+```bash
+# 1. Install the minimal system
+nix run github:nix-community/nixos-anywhere -- \
+  --flake .#marvielb-minimal \
+  --generate-hardware-config nixos-generate-config ./modules/hosts/marvielb/_hardware.nix \
+  root@<target-ip>
+
+# 2. Boot, then switch to the full desktop
+just switch host=marvielb
+```
+
+Same applies to `practice-minimal`. `portfolio` has no desktop profile, so no
+minimal variant exists. No file edits are needed between steps — the host's
+`custom.disko` device (and LUKS/swap settings) are identical for both variants.
+
 ### LUKS-encrypted install (marvielb)
 
 `marvielb` sets `custom.disko.encrypt = true`, so the root partition is LUKS2.

@@ -2,14 +2,15 @@ top: {
   flake.modules.nixos.host_marvielb =
     {
       pkgs,
+      profile,
       ...
     }:
     {
       imports =
         with top.config.flake.modules.nixos;
         [
+          (top.config.flake.modules.nixos.${profile})
           # Foundation + desktop catalog
-          profile_desktop
           preservation
 
           # Hardware
