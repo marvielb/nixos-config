@@ -103,6 +103,25 @@ _: {
         nixpkgs.config.allowUnfree = true;
         networking.networkmanager.enable = true;
 
+        networking.hosts = {
+          "192.168.122.163" = [ "nix.box" ];
+          "18.136.212.81" = [ "aws.box" ];
+          "192.168.122.104" = [ "vananaz.box" ];
+          "192.168.254.24" = [ "nixlxc.box" ];
+          "192.168.254.54" = [ "postgres.lan" ];
+          "192.168.254.10" = [ "proxmox.lan" ]; # port 8006
+          "192.168.254.215" = [ "gitea.lan" ]; # port 3000
+          "192.168.254.219" = [ "lgtm.lan" ];
+          "192.168.254.223" = [
+            "gitea.home"
+            "proxmox.home"
+            "auth.local.home"
+            "auth.home"
+          ];
+          "192.168.254.40" = [ "noctiflow.box" ];
+          "192.168.254.76" = [ "practice.box" ];
+        };
+
         nix.settings.experimental-features = [
           "nix-command"
           "flakes"
