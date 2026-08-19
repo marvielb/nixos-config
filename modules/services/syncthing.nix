@@ -4,12 +4,12 @@ _: {
       {
         services.syncthing = {
           enable = true;
-          overrideDevices = true;
-          overrideFolders = true;
-          settings = {
-            devices = { };
-            folders = { };
-          };
+          # overrideDevices = true;
+          # overrideFolders = true;
+          # settings = {
+          #   devices = { };
+          #   folders = { };
+          # };
         };
       }
     ];
