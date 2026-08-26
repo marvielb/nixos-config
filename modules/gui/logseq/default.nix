@@ -18,5 +18,10 @@ _: {
 
       environment.systemPackages = [ logseq-wrapped ];
       custom.persist.home.directories = [ ".logseq" ];
+
+      custom.app-binds."Mod+1" = {
+        app-id = "(?i)^logseq$";
+        command = [ "${logseq-wrapped}/bin/logseq" ];
+      };
     };
 }

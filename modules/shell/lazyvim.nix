@@ -27,5 +27,17 @@
       ".local/share/nvim"
       ".local/state/nvim"
     ];
+
+    custom.app-binds."Mod+3" = {
+      app-id = "^lazyvim$";
+      command = [
+        "foot"
+        "--app-id=lazyvim"
+        "-T"
+        "lazyvim"
+        "--"
+        "nvim"
+      ];
+    };
   };
 }

@@ -18,5 +18,7 @@
         enable = true;
         package = niri';
       };
+
+      environment.systemPackages = [ pkgs.nirius ];
     };
 }
