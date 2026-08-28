@@ -124,6 +124,7 @@ _: {
       config = {
         nixpkgs.config.allowUnfree = true;
         networking.networkmanager.enable = true;
+        services.journald.extraConfig = "Storage=persistent";
 
         networking.hosts = {
           "192.168.122.163" = [ "nix.box" ];
