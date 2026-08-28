@@ -9,6 +9,6 @@ _: {
       };
     };
 
-    custom.persist.root.directories = [ "/var/cache/lemurs" ];
+    custom.persist.root.files = [ "/var/cache/lemurs" ];
   };
 }
