@@ -97,28 +97,6 @@ _: {
             Must be set per-host where the git HM module is used.
           '';
         };
-
-        app-binds = lib.mkOption {
-          type = types.attrsOf (
-            types.submodule {
-              options.app-id = lib.mkOption {
-                type = types.str;
-                description = "Regex matching the window's Wayland app-id.";
-              };
-              options.command = lib.mkOption {
-                type = types.listOf types.str;
-                description = "Command + args to spawn if no matching window exists.";
-              };
-            }
-          );
-          default = { };
-          description = ''
-            Per-app summon binds. Each feature module declares the key it wants
-            (e.g. "Mod+2") plus the app-id regex and spawn command. The host's
-            active WM (currently niri) is responsible for consuming these and
-            wiring them to the desired keys.
-          '';
-        };
       };
 
       config = {

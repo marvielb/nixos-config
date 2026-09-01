@@ -7,10 +7,5 @@ _: {
     ];
 
     custom.persist.home.directories = [ ".config/pear-desktop" ];
-
-    custom.app-binds."Mod+9" = {
-      app-id = "^com\\.github\\.th-ch\\.youtube-music$";
-      command = [ "${pkgs.pear-desktop}/bin/pear-desktop" ];
-    };
   };
 }

@@ -11,6 +11,9 @@
           spawn-at-startup = config.custom.niri.startup or [ ];
           spawn-sh-at-startup = config.custom.niri.startupSh or [ ];
         };
+        extraSettings = map (name: { workspace = _: { props = name; }; }) (
+          config.custom.niri.workspaces or [ ]
+        );
       };
     in
     {
@@ -18,7 +21,5 @@
         enable = true;
         package = niri';
       };
-
-      environment.systemPackages = [ pkgs.nirius ];
     };
 }

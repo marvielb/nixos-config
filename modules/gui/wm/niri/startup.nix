@@ -31,9 +31,6 @@ _: {
             "niri-session.target"
           ]
         ];
-        startupSh = [
-          "${pkgs.nirius}/bin/niriusd"
-        ];
       };
 
       systemd.user.targets.niri-session = {

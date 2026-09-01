@@ -20,10 +20,5 @@
     custom.persist.home.directories = [
       ".config/zen"
     ];
-
-    custom.app-binds."Mod+2" = {
-      app-id = "^zen$";
-      command = [ "zen-twilight" ];
-    };
   };
 }

@@ -6,6 +6,12 @@
       description = "Niri layout, input, cursor, and misc settings";
     };
 
+    options.custom.niri.workspaces = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Named workspaces, rendered in list order (the wrapper's extraSettings)";
+    };
+
     config.custom.niri.settings = {
       layout = {
         gaps = 3;
@@ -42,5 +48,7 @@
       cursor.xcursor-theme = "default";
       screenshot-path = "~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png";
     };
+
+    config.custom.niri.workspaces = map toString (lib.range 1 10);
   };
 }
