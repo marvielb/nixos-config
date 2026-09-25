@@ -17,6 +17,9 @@ top: {
           hardware_qemu
           hardware_audio
 
+          # Services
+          services_docker
+
           # Auth
           auth_lemurs
         ]
@@ -25,7 +28,10 @@ top: {
           ../_disko.nix
         ];
 
-      boot.loader.grub.enable = true;
+      boot.loader = {
+        systemd-boot.enable = true;
+        efi.canTouchEfiVariables = true;
+      };
 
       networking.hostName = "nixos";
 

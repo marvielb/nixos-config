@@ -29,7 +29,6 @@
 
       # Services — background daemons
       services_syncthing
-      services_docker
 
       # Security
       security_sops-nix

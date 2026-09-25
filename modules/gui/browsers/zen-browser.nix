@@ -7,6 +7,12 @@
           enable = true;
           setAsDefaultBrowser = true;
 
+          policies = {
+            DontCheckDefaultBrowser = true;
+            DisableAppUpdate = true;
+            DisableTelemetry = true;
+          };
+
           profiles.default = {
             id = 0;
             isDefault = true;

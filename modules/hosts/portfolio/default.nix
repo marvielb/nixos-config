@@ -20,7 +20,10 @@ top: {
           ../_disko.nix
         ];
 
-      boot.loader.grub.enable = true;
+      boot.loader = {
+        systemd-boot.enable = true;
+        efi.canTouchEfiVariables = true;
+      };
 
       networking.hostName = "nixos";
 
@@ -58,7 +61,6 @@ top: {
 
       environment.systemPackages = with pkgs; [
         vim
-        neovim
       ];
 
       services.openssh.enable = true;

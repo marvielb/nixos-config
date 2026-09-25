@@ -17,6 +17,12 @@ deploy host=host:
 deploy-boot host=host:
     nh os boot . -H {{host}} --target-host {{host}}@{{host}}.box
 
+deploy-vm:
+    nh os switch . -H  marvielb --target-host marvielb@192.168.122.32
+
+deploy-vm-boot:
+    nh os boot . -H marvielb --target-host marvielb@192.168.122.32
+
 # One-time bootstrap: extract age key from a deployed machine and add to .sops.yaml
 get-key host=host:
     #!/usr/bin/env bash
