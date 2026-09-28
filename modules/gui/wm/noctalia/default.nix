@@ -9,9 +9,9 @@
       noctalia-reload = pkgs.writeShellApplication {
         name = "noctalia-reload";
         text = /* sh */ ''
-          killall .quickshell-wra || true
+          killall noctalia || true
           sleep 0.2
-          noctalia-shell
+          noctalia
         '';
       };
 
@@ -19,63 +19,24 @@
         name = "noctalia-start";
         text = /* sh */ ''
           nocheck() { "$@" 2>/dev/null || true; }
-          nocheck killall .quickshell-wra
+          nocheck killall noctalia
           sleep 0.2
-          noctalia-shell &
+          noctalia &
         '';
       };
 
-      noctalia-ipc = pkgs.callPackage (
-        {
-          writeShellApplication,
-          killall,
-          jq,
-        }:
-        writeShellApplication {
-          name = "noctalia-ipc";
-          runtimeInputs = [
-            killall
-            jq
-          ];
-          text = /* sh */ ''
-            RAW_OUTPUT=$(noctalia-shell list --json 2>/dev/null)
-
-            if [[ ! "$RAW_OUTPUT" == "["* ]]; then
-              exec noctalia-shell
-            fi
-
-            NOCTALIA_PATH=$(echo "$RAW_OUTPUT" | jq -r '.[] | .config_path | sub("/share/noctalia-shell/shell.qml$"; "")')
-
-            if [[ "$NOCTALIA_PATH" =~ "_dirty" ]]; then
-              exec "$NOCTALIA_PATH/bin/noctalia-shell" ipc call "$@"
-            fi
-
-            exec noctalia-shell ipc call "$@"
-          '';
-        }
-      ) { };
+      noctalia-ipc = pkgs.writeShellApplication {
+        name = "noctalia-ipc";
+        text = /* sh */ ''
+          exec noctalia msg "$@"
+        '';
+      };
 
       noctalia-copy = pkgs.writeShellApplication {
         name = "noctalia-copy";
-        runtimeInputs = with pkgs; [
-          jq
-          wl-clipboard
-        ];
+        runtimeInputs = with pkgs; [ wl-clipboard ];
         text = /* sh */ ''
-          noctalia-shell ipc call state all | jq -S '.settings' | wl-copy
-        '';
-      };
-
-      noctalia-diff = pkgs.writeShellApplication {
-        name = "noctalia-diff";
-        runtimeInputs = with pkgs; [
-          jq
-          json-diff
-        ];
-        text = /* sh */ ''
-          json-diff \
-            <(jq -S . "''${XDG_CONFIG_HOME:-$HOME}/.config/noctalia/settings.json") \
-            <(noctalia-shell ipc call state all | jq -S '.settings')
+          wl-copy < "''${XDG_CONFIG_HOME:-$HOME}/.config/noctalia/config.toml"
         '';
       };
     in
@@ -83,10 +44,7 @@
       home-manager.sharedModules = [
         inputs.noctalia.homeModules.default
         {
-          programs.noctalia-shell.enable = true;
-
-          xdg.configFile."noctalia/colors.json".force = true;
-          # xdg.configFile."noctalia/settings.json".force = true;
+          programs.noctalia.enable = true;
         }
       ];
 
@@ -95,7 +53,6 @@
         noctalia-start
         noctalia-ipc
         noctalia-copy
-        noctalia-diff
       ];
 
       custom = {
@@ -107,13 +64,13 @@
         niri.settings = {
           layer-rules = [
             {
-              matches = [ { namespace = "^noctalia-background-.*$"; } ];
+              matches = [ { namespace = "^noctalia-(backdrop|wallpaper).*"; } ];
               background-effect.blur = true;
             }
           ];
           window-rules = [
             {
-              matches = [ { app-id = "^dev.noctalia.noctalia-qs$"; } ];
+              matches = [ { app-id = "^dev.noctalia.Noctalia$"; } ];
               background-effect.blur = true;
             }
           ];

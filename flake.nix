@@ -36,7 +36,7 @@
     job-rss.url = "github:marvielb/job-rss";
 
     noctalia = {
-      url = "github:noctalia-dev/noctalia/legacy-v4";
+      url = "github:noctalia-dev/noctalia/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

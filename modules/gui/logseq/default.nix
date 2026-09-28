@@ -4,7 +4,9 @@
     let
       stable = import inputs.nixpkgs-stable {
         localSystem = pkgs.system;
-        config = { permittedInsecurePackages = [ "electron-37.10.2" ]; };
+        config = {
+          permittedInsecurePackages = [ "electron-37.10.2" ];
+        };
       };
 
       logseq-wrapped = stable.symlinkJoin {

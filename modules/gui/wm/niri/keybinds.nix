@@ -35,8 +35,8 @@
       "Mod+Return".spawn = [ "${pkgs.foot}/bin/foot" ];
       "Mod+D".spawn = [
         "noctalia-ipc"
+        "panel-toggle"
         "launcher"
-        "toggle"
       ];
       "Mod+N".spawn = [ "${pkgs.thunar}/bin/thunar" ];
 
