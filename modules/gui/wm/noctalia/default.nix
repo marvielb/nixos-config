@@ -59,6 +59,7 @@
         persist.home.directories = [
           ".config/noctalia"
           ".cache/noctalia"
+          ".local/state/noctalia"
         ];
 
         niri.settings = {
