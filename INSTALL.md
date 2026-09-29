@@ -73,8 +73,8 @@ The recipe walks you through:
 6. Generates `_hardware.nix` from the actual machine
 7. Appends the machine's age key to `.sops.yaml`, rekeys `secrets.yaml`
 8. Commits `_hardware.nix` + `.sops.yaml`; copies the repo (with those
-   changes) into the persisted `/etc/nixos` — after reboot the installed
-   system already has its config at `/etc/nixos`, no re-clone — then offers
+   changes) into the persisted `~/src/nixos-config` — after reboot the installed
+   system already has its config at `~/src/nixos-config`, no re-clone — then offers
    to `git push`
 
 ### A3. Pushing from the ISO (optional; GitHub login)
@@ -119,7 +119,7 @@ Remove the ISO, boot from disk. LUKS prompts at the console (interactive —
 ## A5. Post-install on the machine
 
 ```bash
-cd /etc/nixos            # persisted location, copied there by the recipe
+cd ~/src/nixos-config     # persisted location, copied there by the recipe
 nix-shell -p just --run "just --justfile justfile host=marvielb switch"
 git push                 # if you skipped the push in the ISO
 ```
@@ -230,7 +230,7 @@ Remove the ISO and boot into the new system.
 ## B5. Post-install: sops-nix bootstrap
 
 From any machine with repo or SSH access (the machine itself counts — clone
-into persisted `/etc/nixos` and work there):
+into persisted `~/src/nixos-config` and work there):
 
 ```bash
 ssh root@<target-ip> "ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"

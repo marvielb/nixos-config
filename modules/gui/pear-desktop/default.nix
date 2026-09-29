@@ -6,6 +6,6 @@ _: {
       }
     ];
 
-    custom.persist.home.directories = [ ".config/pear-desktop" ];
+    custom.persist.home.directories = [ ".config/YouTube Music" ];
   };
 }

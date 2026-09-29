@@ -205,10 +205,13 @@ install-local host=host device="":
     git commit -m "bootstrap {{host}}: hardware config + machine sops key"
 
     # Copy the repo (with this session's changes: sops key, hardware config)
-    # into the persisted /etc/nixos so the installed system needs no re-clone
-    echo "→ Copying repo into /persistent/etc/nixos (survives reboot)"
-    rm -rf /mnt/persistent/etc/nixos
-    cp -a /tmp/repo/. /mnt/persistent/etc/nixos/
+    # into the user's persisted home so the installed system needs no re-clone
+    REPO_DIR="/mnt/persistent/home/{{host}}/src/nixos-config"
+    echo "→ Copying repo into $REPO_DIR (survives reboot)"
+    mkdir -p "$(dirname "$REPO_DIR")"
+    rm -rf /mnt/persistent/home/{{host}}/src/nixos-config
+    cp -a /tmp/repo/. /mnt/persistent/home/{{host}}/src/nixos-config/
+    chown -R 1000:100 /mnt/persistent/home/{{host}}/src/nixos-config
 
     echo "→ Done. Now: 'git push' from here, remove USB/notes, reboot."
     rm -f /tmp/sops-age-keys.txt /tmp/luks.key

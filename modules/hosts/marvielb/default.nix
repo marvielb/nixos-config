@@ -54,7 +54,6 @@ top: {
 
         persist = {
           root.directories = [
-            "/etc/nixos"
             {
               directory = "/var/lib/nixos";
               inInitrd = true;
@@ -67,7 +66,10 @@ top: {
             }
           ];
           root.files = [ "/etc/machine-id" ];
-          users.marvielb.directories = [ ".ssh" ];
+          users.marvielb.directories = [
+            ".ssh"
+            "src/nixos-config"
+          ];
         };
       };
 
