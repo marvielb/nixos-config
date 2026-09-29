@@ -9,7 +9,7 @@ top: {
       imports =
         with top.config.flake.modules.nixos;
         [
-          (top.config.flake.modules.nixos.${profile})
+          top.config.flake.modules.nixos.${profile}
           # Foundation + desktop catalog
           preservation
 

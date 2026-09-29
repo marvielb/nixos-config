@@ -46,6 +46,15 @@ in
       default = false;
       description = "Encrypt the root partition with LUKS";
     };
+    passwordFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Keyfile used to unlock/create the LUKS container during install.
+        Point at a file on the install environment (e.g. /tmp/luks.key);
+        boot stays interactive because the keyfile is only used by disko.
+      '';
+    };
   };
 
   config = {
@@ -96,14 +105,19 @@ in
 
               content =
                 if config.custom.disko.encrypt then
-                  {
-                    type = "luks";
-                    name = "cryptroot";
-                    settings = {
-                      allowDiscards = true;
-                    };
-                    content = btrfsRoot;
-                  }
+                  (
+                    {
+                      type = "luks";
+                      name = "cryptroot";
+                      settings = {
+                        allowDiscards = true;
+                      };
+                      content = btrfsRoot;
+                    }
+                    // lib.optionalAttrs (config.custom.disko.passwordFile != null) {
+                      passwordFile = config.custom.disko.passwordFile;
+                    }
+                  )
                 else
                   btrfsRoot;
             };

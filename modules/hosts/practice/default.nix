@@ -9,7 +9,7 @@ top: {
       imports =
         with top.config.flake.modules.nixos;
         [
-          (top.config.flake.modules.nixos.${profile})
+          top.config.flake.modules.nixos.${profile}
           # Foundation + desktop catalog
           preservation
 
@@ -18,7 +18,6 @@ top: {
           hardware_audio
 
           # Services
-          services_docker
 
           # Auth
           auth_lemurs

@@ -1,13 +1,130 @@
-# Install via nixos-anywhere
+# Install
 
-Builds on the **source machine** (e.g. Proxmox VM), ships the closure over
-SSH. The target only needs a live ISO with SSH access — no local build needed.
+Two ways to get this config onto a machine:
 
-## 1. Boot the target with NixOS minimal ISO
+- **Method A — one machine** (recommended): everything from the target machine
+  itself, driven by `just install-local`. No second computer needed.
+- **Method B — two machines**: build on a source machine (e.g. Proxmox VM) and
+  ship the closure over SSH with official `nixos-anywhere`.
 
-Boot the physical PC (or VM) with a NixOS 26.05 minimal ISO.
+Common to both: NixOS minimal ISO (26.05+), network, and this repo reachable
+(`git clone <repo-url>` — also works from the target machine's ISO, so a
+"second machine" is only needed if you already prefer building elsewhere).
 
-## 2. Prepare the live environment
+---
+
+# Method A — one machine (just install-local)
+
+Does everything on the target machine only: clone → disk wipe → install →
+hardware config commit → sops key bootstrap → push (optional). You still need
+*something* to carry your personal age key and complete the `git push`
+(phone browser or USB stick — a text file, nothing heavy).
+
+## A1. Boot the NixOS minimal ISO
+
+Connect to the network, then either fetch the repo (recipe clones into
+`/tmp/config` anyway) or grab just the justfile:
+
+```bash
+git clone <repo-url> /tmp/repo && cd /tmp/repo
+```
+
+## A2. Run the recipe
+
+```bash
+sudo -i
+# minimal ISOs don't ship `just` (and nix-command is off by default) — use
+# nix-shell, which enables flakes for that invocation only:
+nix-shell -p just --run "just --justfile /tmp/repo/justfile install-local marvielb"
+# the recipe auto-selects the -minimal variant when the host has one;
+# the full desktop comes with the post-install switch (A5)
+```
+
+The recipe walks you through:
+
+1. Installs `git`, `sops`, `ssh-to-age` into the live environment
+2. **Repo URL** — clones into `/tmp/config`
+3. **Root password** — one for this ISO session only; `nixos-anywhere`
+   needs it to SSH into `root@localhost` (the ISO's root has no password
+   out of the box, so Method A sets one internally and keeps the install
+   self-contained)
+3. **Personal key** — point at a *private* key file (USB stick is easiest).
+   Your personal age key lives in `~/.config/sops/age/keys.txt` on your
+   usual machine — carry **that file**, not an SSH key. (A `.pub` alone
+   can't be used: rekeying has to decrypt first, and decryption needs
+   private key material.) The recipe detects an `AGE-SECRET-KEY-…` file
+   directly; a passphrase-protected SSH private key also works (converted
+   with `ssh-to-age -private-key`). The derived key is stored at
+   `/tmp/sops-age-keys.txt` (chmod 600, RAM only — never written to the
+   installed system, wiped by the recipe's `rm` at the end).
+   Used for `sops updatekeys`.
+4. **LUKS passphrase** (only for `encrypt = true` hosts) — stored at
+   `/tmp/luks.key`; the recipe temporarily injects
+   `passwordFile = "/tmp/luks.key"` into
+   `modules/hosts/<host>/default.nix` (uncommitted, ISO-only) so the install
+   is fully unattended. Remove `passwordFile` from any committed copy.
+5. Runs nixos-anywhere against `root@localhost` (disko wipes the disk) —
+   preferring the `-minimal` flake output when the host has one (low-RAM
+   installers); the full desktop comes with the post-install switch below
+6. Generates `_hardware.nix` from the actual machine
+7. Appends the machine's age key to `.sops.yaml`, rekeys `secrets.yaml`
+8. Commits `_hardware.nix` + `.sops.yaml`; offers to `git push`
+
+### A3. Pushing from the ISO (optional; GitHub login)
+
+The install environment has no stored credentials, so pushing there needs
+one of these done once — all also doable later from the installed system:
+
+**GitHub CLI device flow (easiest)**
+
+```bash
+nix-env -iA nixos.gh
+gh auth login --web
+gh auth setup-git              # wires the push helper into git
+```
+
+It prints a one-time code and `https://github.com/login/device` — open it
+from any browser (your phone works), enter the code, done.
+
+**Personal access token (HTTPS)** — create one with `Contents: Read and
+write` at https://github.com/settings/personal-access-tokens, then:
+
+```bash
+git config --global credential.helper store
+git push                       # asks once, cached afterwards
+```
+
+**Your SSH key** — needed anyway if the clone went over SSH
+(`git@github.com:...`). Add the *matching* private key's public half to
+GitHub → Settings → SSH and GPG keys and `cat` it into the ISO's
+`~/.ssh/authorized_keys` from wherever you keep it; `ssh -T git@github.com`
+verifies.
+
+**No push possible?** Skip it — commits are already on the machine; rerun the
+push from the installed system (below) or `git format-patch origin/master`
+and carry the patch over.
+
+## A4. Reboot
+
+Remove the ISO, boot from disk. LUKS prompts at the console (interactive —
+`passwordFile` was ISO-only). sops-nix decrypts with the machine's own key.
+
+## A5. Post-install on the machine
+
+```bash
+cd /etc/nixos            # persisted location, already a git clone
+nix-shell -p just --run "just --justfile justfile switch host=marvielb"
+git push                 # if you skipped the push in the ISO
+```
+
+---
+
+# Method B — two machines (nixos-anywhere from a source machine)
+
+Builds on the **source machine**, ships the closure over SSH to the target
+live ISO. The target only needs SSH access — no local build needed.
+
+## B1. Boot the target with NixOS minimal ISO
 
 ```bash
 sudo -i
@@ -16,11 +133,7 @@ systemctl start sshd                # enable SSH access
 ip a                                # note the IP address
 ```
 
-That's all the target needs. Everything else runs from your source machine.
-
-## 3. From the source machine (Proxmox VM)
-
-Ensure this repo is cloned and flakes are enabled:
+## B2. From the source machine
 
 ```bash
 git clone <repo-url> /path/to/config
@@ -90,33 +203,34 @@ Swap is a separate unencrypted partition (8G for marvielb) outside the LUKS
 container, with hibernation disabled (`resumeDevice = false`). Only the root
 partition is encrypted.
 
-## 4. Commit the generated hardware config
+## B3. Push hardware config + machine sops key
 
-After the install finishes, `_hardware.nix` contains the full hardware config
-(boot kernel modules, CPU microcode, etc.) for the actual machine. Commit it
-from whatever machine has repo access:
+Commit from whatever machine has repo access (see A3 for how to log into
+GitHub when that machine is not your usual one):
 
 ```bash
 git add modules/hosts/marvielb/_hardware.nix
 git commit -m "add marvielb hardware config"
 ```
 
-The `fileSystems` block in the generated file is harmless — disko overrides it.
-No manual cherry-picking needed.
+The `fileSystems` block in the generated file is harmless — disko overrides
+it. No manual cherry-picking needed.
 
-## 5. Reboot
+## B4. Reboot
 
 Remove the ISO and boot into the new system.
 
-## 6. Post-install: sops-nix bootstrap
+## B5. Post-install: sops-nix bootstrap
 
-From the source machine, add the new machine's age key:
+From any machine with repo or SSH access (the machine itself counts — clone
+into persisted `/etc/nixos` and work there):
 
 ```bash
 ssh root@<target-ip> "ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"
 ```
 
-Append the key to `.sops.yaml` and rekey existing secrets, then redeploy:
+Append the key to `.sops.yaml`, rekey the secrets
+(`sops updatekeys secrets.yaml`), commit, then redeploy:
 
 ```bash
 git add -A && git commit -m "add marvielb sops key"
@@ -126,15 +240,23 @@ just deploy marvielb
 ## Testing in a VM first
 
 1. Create a VM with UEFI (OVMF), 12GB+ RAM, one virtual disk
-2. Boot NixOS ISO in the VM, follow step 2 above
-3. On the source machine: `sed` override disk to `vda` (step 3), then run
-   nixos-anywhere — this generates `_hardware.nix` with the correct `virtio`
-   kernel modules for the VM automatically
-
-After confirming the VM works, restore `custom.disko.device`:
+2. Boot NixOS ISO in the VM, follow A1/A2 above (with disk overridden to `vda`,
+   step B2), then run nixos-anywhere — this generates `_hardware.nix` with the
+   correct `virtio` kernel modules for the VM automatically
+3. After confirming the VM works, restore `custom.disko.device`:
 
 ```bash
 git checkout modules/hosts/marvielb/default.nix
 ```
 
 Then install on bare metal — same command, just different IP and no device edit.
+
+---
+
+# Why only *your* age key is needed for rekeying
+
+`sops updatekeys` decrypts with **your** personal key and re-encrypts with the
+full recipient list from `.sops.yaml` (now including the new machine's
+*public* age key, derived from its host SSH key). The new machine only needs
+its *private* key at first boot to decrypt the deployed secrets — the key
+already exists on disk (made during install, converted via `ssh-to-age`).
