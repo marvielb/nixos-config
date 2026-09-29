@@ -123,10 +123,23 @@ _: {
           "192.168.254.76" = [ "practice.box" ];
         };
 
-        nix.settings.experimental-features = [
-          "nix-command"
-          "flakes"
-        ];
+        nix.settings = {
+          experimental-features = [
+            "nix-command"
+            "flakes"
+          ];
+
+          # flake nixConfig is ignored unless accept-flake-config is trusted,
+          # so declare the caches declaratively instead
+          substituters = [
+            "https://cache.nixos.org/"
+            "https://noctalia.cachix.org"
+          ];
+          trusted-public-keys = [
+            "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+            "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+          ];
+        };
         system.stateVersion = lib.mkDefault "26.05";
 
         assertions =

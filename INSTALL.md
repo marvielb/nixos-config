@@ -22,8 +22,7 @@ hardware config commit → sops key bootstrap → push (optional). You still nee
 
 ## A1. Boot the NixOS minimal ISO
 
-Connect to the network, then either fetch the repo (recipe clones into
-`/tmp/config` anyway) or grab just the justfile:
+Connect to the network, then clone the repo from the ISO:
 
 ```bash
 git clone <repo-url> /tmp/repo && cd /tmp/repo
@@ -36,14 +35,15 @@ sudo -i
 # minimal ISOs don't ship `just` (and nix-command is off by default) — use
 # nix-shell, which enables flakes for that invocation only:
 nix-shell -p just --run "just --justfile /tmp/repo/justfile install-local marvielb"
-# the recipe auto-selects the -minimal variant when the host has one;
-# the full desktop comes with the post-install switch (A5)
+# the recipe installs the smallest closure (console → minimal, whichever
+# the host provides); the full desktop comes with the post-install switch
 ```
 
 The recipe walks you through:
 
 1. Installs `git`, `sops`, `ssh-to-age` into the live environment
-2. **Repo URL** — clones into `/tmp/config`
+2. **Repo location** — it runs in-place from the clone you made in A1
+   (no re-cloning; whatever revision you cloned is what gets installed)
 3. **Root password** — one for this ISO session only; `nixos-anywhere`
    needs it to SSH into `root@localhost` (the ISO's root has no password
    out of the box, so Method A sets one internally and keeps the install
@@ -64,11 +64,18 @@ The recipe walks you through:
    `modules/hosts/<host>/default.nix` (uncommitted, ISO-only) so the install
    is fully unattended. Remove `passwordFile` from any committed copy.
 5. Runs nixos-anywhere against `root@localhost` (disko wipes the disk) —
-   preferring the `-minimal` flake output when the host has one (low-RAM
-   installers); the full desktop comes with the post-install switch below
+   partitioning and installing in two phases so the ISO's own `machine-id`
+   can be transplanted first (systemd-boot's installer crashes on an empty
+   one, and impermanence means the fresh root has none yet), preferring
+   the smallest flake output (`-console` → `-minimal` → host, first that
+   exists — a console-only closure fits the ISO's tmpfs RAM); the full
+   desktop comes with the post-install switch below
 6. Generates `_hardware.nix` from the actual machine
 7. Appends the machine's age key to `.sops.yaml`, rekeys `secrets.yaml`
-8. Commits `_hardware.nix` + `.sops.yaml`; offers to `git push`
+8. Commits `_hardware.nix` + `.sops.yaml`; copies the repo (with those
+   changes) into the persisted `/etc/nixos` — after reboot the installed
+   system already has its config at `/etc/nixos`, no re-clone — then offers
+   to `git push`
 
 ### A3. Pushing from the ISO (optional; GitHub login)
 
@@ -112,8 +119,8 @@ Remove the ISO, boot from disk. LUKS prompts at the console (interactive —
 ## A5. Post-install on the machine
 
 ```bash
-cd /etc/nixos            # persisted location, already a git clone
-nix-shell -p just --run "just --justfile justfile switch host=marvielb"
+cd /etc/nixos            # persisted location, copied there by the recipe
+nix-shell -p just --run "just --justfile justfile host=marvielb switch"
 git push                 # if you skipped the push in the ISO
 ```
 
@@ -181,7 +188,7 @@ nix run github:nix-community/nixos-anywhere -- \
   root@<target-ip>
 
 # 2. Boot, then switch to the full desktop
-just switch host=marvielb
+just host=marvielb switch
 ```
 
 Same applies to `practice-minimal`. `portfolio` has no desktop profile, so no

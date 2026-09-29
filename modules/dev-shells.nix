@@ -10,6 +10,8 @@ _: {
           pkgs.nixos-rebuild
           pkgs.just
           pkgs.nh
+          pkgs.git
+          pkgs.sops
         ];
       };
     };
