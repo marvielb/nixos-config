@@ -1,7 +1,7 @@
 { inputs, ... }: {
   flake.modules.nixos.gui_browsers_zen-browser = _: {
     home-manager.sharedModules = [
-      inputs.zen-browser.homeModules.twilight
+      inputs.zen-browser.homeModules.default
       {
         programs.zen-browser = {
           enable = true;
