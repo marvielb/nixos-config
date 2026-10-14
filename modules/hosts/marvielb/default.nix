@@ -12,6 +12,7 @@ top: {
           top.config.flake.modules.nixos.${profile}
           # Foundation + desktop catalog
           preservation
+          shell_pi
 
           # Hardware
           hardware_bluetooth

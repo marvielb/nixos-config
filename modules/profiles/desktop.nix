@@ -26,6 +26,7 @@
       shell_tmux
       shell_direnv
       shell_starship
+      shell_pi
 
       # Services — background daemons
       services_syncthing
