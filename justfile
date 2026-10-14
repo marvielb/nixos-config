@@ -1,6 +1,6 @@
 # NixOS Config — Build helpers
 
-host := "practice"
+host := "marvielb"
 
 # Build the system (dry run, doesn't switch)
 build:
