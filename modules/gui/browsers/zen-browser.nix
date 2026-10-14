@@ -11,6 +11,15 @@
             DontCheckDefaultBrowser = true;
             DisableAppUpdate = true;
             DisableTelemetry = true;
+
+            # Force-install uBlock Origin. This is re-asserted on every
+            # start by the extension policy, so the user can't remove or
+            # permanently disable it from the UI; install_url follows the
+            # latest AMO release.
+            ExtensionSettings."uBlock0@raymondhill.net" = {
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+              installation_mode = "force_installed";
+            };
           };
 
           profiles.default = {
