@@ -1,27 +1,40 @@
 { ... }: {
   flake.modules.nixos.shell_pi =
     let
-      # OpenCode Go (provider id: opencode-go). Both OpenCode Zen and Go
-      # authenticate via OPENCODE_API_KEY (pi docs → providers.md).
-      # To use another provider, swap this and the sops secret key name.
-      apiKeyVar = "OPENCODE_API_KEY";
-      apiKeySecret = "pi_opencode_go_api_key";
+      # Provider credentials: secret name in secrets.yaml ↔ env var pi's
+      # provider adapters read (pi docs → providers.md). Add a pair here
+      # to wire another provider.
+      apiSecrets = [
+        {
+          key = "pi_opencode_go_api_key";
+          env = "OPENCODE_API_KEY";
+        }
+        {
+          # OpenRouter — cheap/free worker models for pi-blackhole.
+          key = "openrouter_api_key";
+          env = "OPENROUTER_API_KEY";
+        }
+      ];
     in
-    { config, ... }: {
+    { lib, config, ... }: {
       # Decrypt at activation using the host SSH key; readable by normal
-      # users so interactive shells can export it to pi.
-      sops.secrets.${apiKeySecret} = {
-        sopsFile = ./secrets.yaml;
-        mode = "0440";
-        group = "users";
-      };
+      # users so interactive shells can export them to pi.
+      sops.secrets = lib.listToAttrs (
+        lib.map (s: lib.nameValuePair s.key {
+          sopsFile = ./secrets.yaml;
+          mode = "0440";
+          group = "users";
+        }) apiSecrets
+      );
 
-      # Export the key to every interactive bash shell. pi reads
-      # ${apiKeyVar} from the process environment at launch.
-      programs.bash.interactiveShellInit = ''
-        [ -f /run/secrets/${apiKeySecret} ] && \
-          export ${apiKeyVar}="$(cat /run/secrets/${apiKeySecret})"
-      '';
+      # Export the keys to every interactive bash shell; pi reads them
+      # from the process environment at launch.
+      programs.bash.interactiveShellInit = lib.concatStringsSep "\n" (
+        lib.map (s: ''
+          [ -f /run/secrets/${s.key} ] && \
+            export ${s.env}="$(cat /run/secrets/${s.key})"
+        '') apiSecrets
+      );
 
       home-manager.sharedModules = [
         ({ pkgs, ... }: {
