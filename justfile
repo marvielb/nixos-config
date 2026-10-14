@@ -56,9 +56,32 @@ get-key host=host:
     echo "    git commit -m \"add {{host}} sops key\""
     echo "    just deploy {{host}}"
 
-# Create or edit an encrypted secret (reads .sops.yaml automatically)
+# Create or edit an encrypted secret (reads .sops.yaml automatically).
+# Needs a PRIVATE age key your user can read: your personal key on the USB
+# (sops/age/keys.txt), ~/.config/sops/age/keys.txt, or SOPS_AGE_KEY_FILE.
+# The host key (/etc/ssh) is root-only — reserved for activation-time decrypt.
 edit-secret path:
-    nix run nixpkgs#sops -- {{path}}
+    #!/usr/bin/env bash
+    set -euo pipefail
+    KEY=""
+    for cand in "${SOPS_AGE_KEY_FILE:-}" \
+                "$HOME/.config/sops/age/keys.txt" \
+                /tmp/sops-age-keys.txt \
+                /run/media/*/sops/age/keys.txt; do
+      if [ -n "$cand" ] && [ -f "$cand" ]; then KEY="$cand"; break; fi
+    done
+    if [ -z "$KEY" ]; then
+      echo "→ No personal key found; deriving machine age key from /etc/ssh (sudo)"
+      HOST_AGE=$(sudo nix run nixpkgs#ssh-to-age -- -private-key -i /etc/ssh/ssh_host_ed25519_key) || {
+        echo "✗ Host key derivation failed. Plug in the USB with" >&2
+        echo "  sops/age/keys.txt, or: export SOPS_AGE_KEY_FILE=/path/to/keys.txt" >&2
+        exit 1
+      }
+      # sops runs as your user — only the one-line key read needs sudo.
+      exec env SOPS_AGE_KEY="$HOST_AGE" nix run nixpkgs#sops -- "{{path}}"
+    fi
+    echo "→ Using key: $KEY"
+    exec env SOPS_AGE_KEY_FILE="$KEY" nix run nixpkgs#sops -- "{{path}}"
 
 # One-machine install: run ON the target machine (NixOS minimal ISO, root, network up).
 # Clones the repo, prompts for your personal age key (RAM-only) and LUKS passphrase,

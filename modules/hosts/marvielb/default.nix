@@ -69,9 +69,15 @@ top: {
             }
           ];
           root.files = [ "/etc/machine-id" ];
+          # Personal sops age key (backup source: USB) — lets interactive
+          # `just edit-secret` work without the USB plugged in. Not part of
+          # the /run/secrets flow; activation uses the host SSH key instead.
           users.marvielb.directories = [
             ".ssh"
             "src/nixos-config"
+          ];
+          users.marvielb.files = [
+            ".config/sops/age/keys.txt"
           ];
         };
       };
