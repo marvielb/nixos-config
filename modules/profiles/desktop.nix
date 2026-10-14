@@ -14,6 +14,8 @@
       gui_pear-desktop
       gui_pureref
       gui_zathura
+      gui_wl-clipboard
+      hardware_udisks2
 
       # Shell — CLI/TUI tools
       shell_git
