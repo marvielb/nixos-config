@@ -83,6 +83,7 @@ top: {
           "wheel"
           "seat"
           "video"
+          "audio"
         ];
         packages = with pkgs; [ tree ];
       };
