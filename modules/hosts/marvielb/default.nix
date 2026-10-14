@@ -12,6 +12,7 @@ top: {
           top.config.flake.modules.nixos.${profile}
           # Foundation + desktop catalog
           preservation
+          security_sops-nix
           shell_pi
 
           # Hardware
