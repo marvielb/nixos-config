@@ -19,6 +19,9 @@
               };
             };
           };
+          extras =  {
+              editor.mini-files.enable = true;
+            };
         };
       }
     ];
