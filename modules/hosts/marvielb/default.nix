@@ -50,6 +50,7 @@ top: {
           device = "/dev/disk/by-id/ata-CT500MX500SSD1_2309E6B4DA65";
           swapSize = "8G";
           encrypt = true;
+          passwordFile = "/tmp/luks.key";
         };
 
         persist = {
