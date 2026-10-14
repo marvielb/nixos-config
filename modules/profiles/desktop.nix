@@ -29,6 +29,7 @@
       shell_direnv
       shell_starship
       shell_pi
+      shell_just
 
       # Services — background daemons
       services_syncthing
