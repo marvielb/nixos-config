@@ -47,7 +47,7 @@ top: {
         };
 
         disko = {
-          device = "/dev/disk/by-id/nvme-PNY_CS3030_500GB_SSD_PNY48200266260101A28";
+          device = "/dev/disk/by-id/ata-CT500MX500SSD1_2309E6B4DA65";
           swapSize = "8G";
           encrypt = true;
         };
