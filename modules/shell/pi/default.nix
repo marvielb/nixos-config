@@ -24,10 +24,19 @@
       '';
 
       home-manager.sharedModules = [
-        ({ ... }: {
+        ({ pkgs, ... }: {
           programs.pi-coding-agent = {
             enable = true;
             settings.defaultProvider = "opencode-go";
+
+            # pi packages (extensions, skills, prompts, themes) are picked up
+            # from this declarations list at startup; versions stay pinned so
+            # upgrades are a deliberate nix edit.
+            settings.packages = [ "npm:pi-blackhole@0.5.13" ];
+
+            # pi reconciles npm-source package installs itself — give it
+            # npm/node on the wrapped binary's PATH.
+            extraPackages = [ pkgs.nodejs ];
           };
         })
       ];
