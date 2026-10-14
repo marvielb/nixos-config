@@ -30,9 +30,10 @@
             settings.defaultProvider = "opencode-go";
 
             # pi packages (extensions, skills, prompts, themes) are picked up
-            # from this declarations list at startup; versions stay pinned so
-            # upgrades are a deliberate nix edit.
-            settings.packages = [ "npm:pi-blackhole@0.5.13" ];
+            # from this declarations list at startup. Unversioned npm sources
+            # float to latest: pi checks the registry at launch (notification
+            # only) and applies on `pi update --extensions`.
+            settings.packages = [ "npm:pi-blackhole" ];
 
             # pi reconciles npm-source package installs itself — give it
             # npm/node on the wrapped binary's PATH.
