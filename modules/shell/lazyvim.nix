@@ -11,11 +11,48 @@
 
         programs.lazyvim = {
           enable = true;
+          treesitterParsers = with pkgs.vimPlugins.nvim-treesitter-parsers; [
+            beancount
+          ];
           plugins = {
+            # Centered distraction-free buffer layout (:NoNeckPain toggles).
+            no-neck-pain = inputs.lazyvim.lib.lazyConfig {
+              plugin = "shortcuts/no-neck-pain.nvim";
+              opts = { };
+            };
+            # Disable LazyVim's default tab bar.
+            bufferline = inputs.lazyvim.lib.lazyConfig {
+              plugin = "akinsho/bufferline.nvim";
+              enabled = false;
+            };
             colorscheme = inputs.lazyvim.lib.lazyConfig {
               plugin = "LazyVim/LazyVim";
               opts = {
                 colorscheme = config.custom.colorscheme;
+              };
+            };
+            lsp-beancount = inputs.lazyvim.lib.lazyConfig {
+              plugin = "neovim/nvim-lspconfig";
+              opts.servers.beancount = { };
+            };
+            # Format on save via conform (LazyVim's formatter).
+            # bean-format: FILE-in-place mode (no stdin support); nixfmt:
+            # explicit "-" silences the bare-invocation deprecation warning.
+            format-beancount = inputs.lazyvim.lib.lazyConfig {
+              plugin = "stevearc/conform.nvim";
+              opts = {
+                formatters.bean_format = {
+                  command = "bean-format";
+                  args = [
+                    "-i" # bean-format writes to stdout by default; -i edits in place
+                    "$FILENAME"
+                  ];
+                  stdin = false;
+                };
+                formatters.nixfmt.args = [ "-" ];
+                formatters_by_ft = {
+                  beancount = [ "bean_format" ];
+                };
               };
             };
           };
@@ -29,8 +66,8 @@
           };
           extraPackages = with pkgs; [
             nil # Nix LSP
-            statix # Nix Linter
             nixfmt # Nix Formatter
+            statix # Nix Linter
           ];
         };
       }
