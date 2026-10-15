@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.modules.nixos.shell_lazyvim = { config, ... }: {
+  flake.modules.nixos.shell_lazyvim = { config, pkgs, ... }: {
     home-manager.sharedModules = [
       inputs.lazyvim.homeManagerModules.default
       {
@@ -19,9 +19,19 @@
               };
             };
           };
-          extras =  {
-              editor.mini-files.enable = true;
+          extras = {
+            editor.mini-files.enable = true;
+            lang.nix = {
+              enable = true;
+              installDependencies = true;
+              installRuntimeDependencies = true;
             };
+          };
+          extraPackages = with pkgs; [
+            nil # Nix LSP
+            statix # Nix Linter
+            nixfmt # Nix Formatter
+          ];
         };
       }
     ];
