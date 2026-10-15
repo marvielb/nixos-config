@@ -70,10 +70,7 @@ top: {
           ];
           # /etc/shadow holds `passwd`-set hashes; without it, tmpfs root
           # resets passwords to initialPassword every reboot.
-          root.files = [
-            "/etc/machine-id"
-            "/etc/shadow"
-          ];
+          root.files = [ "/etc/machine-id" ];
           # Personal sops age key (backup source: USB) — lets interactive
           # `just edit-secret` work without the USB plugged in. Not part of
           # the /run/secrets flow; activation uses the host SSH key instead.
@@ -87,9 +84,15 @@ top: {
         };
       };
 
+      # Password is a hash read from /persistent at activation
+      # (create it with: mkpasswd -m sha-512 > /persistent/etc/shadow.hash).
+      # Mutable (passwd) passwords cannot be persisted: NixOS rewrites
+      # /etc/shadow atomically, which fails on a bind mount.
+      users.mutableUsers = false;
+
       users.users.marvielb = {
         isNormalUser = true;
-        initialPassword = "123456";
+        hashedPasswordFile = "/persistent/etc/shadow.hash";
         extraGroups = [
           "wheel"
           "seat"
