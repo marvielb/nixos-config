@@ -68,8 +68,6 @@ top: {
               inInitrd = true;
             }
           ];
-          # /etc/shadow holds `passwd`-set hashes; without it, tmpfs root
-          # resets passwords to initialPassword every reboot.
           root.files = [ "/etc/machine-id" ];
           # Personal sops age key (backup source: USB) — lets interactive
           # `just edit-secret` work without the USB plugged in. Not part of
@@ -84,10 +82,8 @@ top: {
         };
       };
 
-      # Mutable (passwd) passwords cannot be persisted: NixOS rewrites
-      # /etc/shadow atomically, which fails on a bind mount. The hash
-      # comes from sops instead; neededForUsers = true makes the secret
-      # deploy before the users activation that reads it.
+      # /etc/shadow bind mounts can't work: NixOS rewrites shadow
+      # atomically on activation, which fails on a mount point.
       users.mutableUsers = false;
 
       sops.secrets.marvielb_password_hash = {
