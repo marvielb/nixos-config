@@ -64,6 +64,6 @@
       screenshot-path = "~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png";
     };
 
-    config.custom.niri.workspaces = map toString (lib.range 1 10);
+    config.custom.niri.workspaces = map toString (lib.range 1 3);
   };
 }
