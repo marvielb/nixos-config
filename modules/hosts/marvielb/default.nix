@@ -84,15 +84,21 @@ top: {
         };
       };
 
-      # Password is a hash read from /persistent at activation
-      # (create it with: mkpasswd -m sha-512 > /persistent/etc/shadow.hash).
       # Mutable (passwd) passwords cannot be persisted: NixOS rewrites
-      # /etc/shadow atomically, which fails on a bind mount.
+      # /etc/shadow atomically, which fails on a bind mount. The hash
+      # comes from sops instead; neededForUsers = true makes the secret
+      # deploy before the users activation that reads it.
       users.mutableUsers = false;
+
+      sops.secrets.marvielb_password_hash = {
+        sopsFile = ./secrets.yaml;
+        neededForUsers = true;
+        mode = "0400";
+      };
 
       users.users.marvielb = {
         isNormalUser = true;
-        hashedPasswordFile = "/persistent/etc/shadow.hash";
+        hashedPasswordFile = "/run/secrets/marvielb_password_hash";
         extraGroups = [
           "wheel"
           "seat"
