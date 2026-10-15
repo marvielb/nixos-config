@@ -70,6 +70,12 @@ _: {
           tmux-dev ~/src/nixos/noctiflow noctiflow-infra "nvim" "opencode"
         '';
       })
+      (writeShellApplication {
+        name = "tmux-budget";
+        text = ''
+          exec tmux-dev ~/budget budget "nvim" "fava 2023.beancount"
+        '';
+      })
     ];
   };
 }
