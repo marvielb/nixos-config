@@ -1,25 +1,31 @@
 { lib, ... }: {
   flake.modules.nixos.gui_niri = _: {
-    options.custom.niri.settings = lib.mkOption {
-      type = lib.types.attrs;
-      default = { };
-      description = "Niri layout, input, cursor, and misc settings";
-    };
+    options = {
+      custom = {
+        niri = {
+          settings = lib.mkOption {
+            type = lib.types.attrs;
+            default = { };
+            description = "Niri layout, input, cursor, and misc settings";
+          };
 
-    options.custom.niri.workspaces = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "Named workspaces, rendered in list order (the wrapper's extraSettings)";
-    };
+          workspaces = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ ];
+            description = "Named workspaces, rendered in list order (the wrapper's extraSettings)";
+          };
 
-    options.custom.niri.windowRules = lib.mkOption {
-      type = lib.types.listOf lib.types.attrs;
-      default = [ ];
-      description = ''
-        niri window-rules contributed by feature modules. Concatenated (module
-        system merges lists) into the final window-rules, after any rules set
-        directly in custom.niri.settings.window-rules.
-      '';
+          windowRules = lib.mkOption {
+            type = lib.types.listOf lib.types.attrs;
+            default = [ ];
+            description = ''
+              niri window-rules contributed by feature modules. Concatenated (module
+              system merges lists) into the final window-rules, after any rules set
+              directly in custom.niri.settings.window-rules.
+            '';
+          };
+        };
+      };
     };
 
     config.custom.niri.settings = {
@@ -60,7 +66,7 @@
 
       prefer-no-csd = _: { };
       hotkey-overlay.skip-at-startup = _: { };
-      cursor.xcursor-theme = "default";
+      cursor.xcursor-theme = "phinger-cursors-dark";
       screenshot-path = "~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png";
     };
 

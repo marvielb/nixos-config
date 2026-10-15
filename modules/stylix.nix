@@ -33,6 +33,12 @@
             polarity = "dark";
             base16Scheme = "${pkgs.base16-schemes}/share/themes/${base16-name}.yaml";
 
+            cursor = {
+              package = pkgs.phinger-cursors;
+              name = "phinger-cursors-dark";
+              size = 32;
+            };
+
             icons = {
               enable = true;
               package = pkgs.papirus-icon-theme;
@@ -65,7 +71,17 @@
       )
     ];
 
-    stylix.polarity = "dark";
+    stylix = {
+      polarity = "dark";
+
+      # GTK apps resolve the pointing hand (and other named cursors) via
+      # this theme; without it they fall back to a plain arrow.
+      cursor = {
+        package = pkgs.phinger-cursors;
+        name = "phinger-cursors-dark";
+        size = 32;
+      };
+    };
 
     environment.systemPackages = with pkgs; [ papirus-icon-theme ];
 
