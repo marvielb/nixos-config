@@ -12,9 +12,28 @@
       description = "Named workspaces, rendered in list order (the wrapper's extraSettings)";
     };
 
+    options.custom.niri.windowRules = lib.mkOption {
+      type = lib.types.listOf lib.types.attrs;
+      default = [ ];
+      description = ''
+        niri window-rules contributed by feature modules. Concatenated (module
+        system merges lists) into the final window-rules, after any rules set
+        directly in custom.niri.settings.window-rules.
+      '';
+    };
+
     config.custom.niri.settings = {
       layout = {
-        gaps = 3;
+        gaps = 8;
+        # Side struts make off-screen neighbors peek out slightly at the
+        # screen edges (niri docs → Layout → struts), signalling that you can
+        # scroll horizontally. Visible sliver = strut − gap (48 − 16 = 32px).
+        # Top/bottom omitted on purpose: those only add outer space to the
+        # focused window, not a peek.
+        struts = {
+          left = 48;
+          right = 48;
+        };
         focus-ring.width = 2;
         border.off = _: { };
         default-column-width.proportion = 0.5;

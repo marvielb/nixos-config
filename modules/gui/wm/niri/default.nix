@@ -6,6 +6,9 @@
         inherit pkgs;
         package = pkgs.niri;
         settings = (config.custom.niri.settings or { }) // {
+          window-rules =
+            (config.custom.niri.settings.window-rules or [ ])
+            ++ config.custom.niri.windowRules;
           binds = config.custom.niri.keybinds or { };
           spawn-at-startup = config.custom.niri.startup or [ ];
           spawn-sh-at-startup = config.custom.niri.startupSh or [ ];
