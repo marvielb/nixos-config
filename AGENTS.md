@@ -385,6 +385,18 @@ Core (`configuration.nix`) declares the `options.custom.persist` submodule with
 `root.files`, `home.directories` and `home.files` (flat lists merged into
 every user by the collector), and `users.<name>.{directories,files}` (per-user entries).
 
+## Comments — Only the Non-Obvious
+
+Comments explain what isn't visible in the code: surprising behavior,
+non-obvious rationale, or external facts (e.g. `bean-format` defaults to
+stdout, so `-i` is required; an app-id inherited from upstream). Do not
+comment what the declaration itself says (`# set editor to nvim`) or an
+absence of config; history, rationale stories and design justifications
+belong in the commit message, not the file. Before adding a comment, ask:
+would a reader who knows NixOS and the pattern in this repo learn anything
+new from it? If no, don't write it. When editing, expected upkeep: keep or
+ tighten comments accordingly.
+
 ## Git — Must Stage Before Testing
 
 Nix flakes read from the **git index**, not the working tree. Any new or modified `.nix` file

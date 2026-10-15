@@ -18,7 +18,7 @@
       hardware_udisks2
 
       # Shell — CLI/TUI tools
-      shell_bash # Foundation: generates ~/.bashrc so hooks/aliases/exports load
+      shell_bash
       shell_git
       shell_lazygit
       shell_lazyvim

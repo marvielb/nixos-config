@@ -25,11 +25,7 @@
     config.custom.niri.settings = {
       layout = {
         gaps = 8;
-        # Side struts make off-screen neighbors peek out slightly at the
-        # screen edges (niri docs → Layout → struts), signalling that you can
-        # scroll horizontally. Visible sliver = strut − gap (48 − 16 = 32px).
-        # Top/bottom omitted on purpose: those only add outer space to the
-        # focused window, not a peek.
+        # Side struts make neighbors peek out at the screen edges.
         struts = {
           left = 48;
           right = 48;

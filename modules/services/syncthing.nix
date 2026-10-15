@@ -39,13 +39,8 @@ _: {
     ];
 
     custom.persist.home.directories = [
-      # Runtime state: cert/key identity pair, config.xml, folder database.
-      # Syncthing ≥1.13/2.x uses XDG_STATE_HOME here — the old
-      # .local/share/.config paths are pre-XDG layouts and DO NOT hold the
-      # identity, so persisting them instead of .local/state regenerates a
-      # fresh device ID on every reboot.
-      ".local/state/syncthing"
-      "sync" # Synced folders′ primary data; owned here, not in rclone dirs.
+      ".local/state/syncthing" # identity; XDG_STATE_HOME since 1.13
+      "sync"
     ];
   };
 }

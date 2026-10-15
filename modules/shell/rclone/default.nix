@@ -7,7 +7,6 @@ let
 in
 {
   flake.modules.nixos.shell_rclone = {
-    # Credentials for the gdrive remote (all in one file next to the module).
     sops = {
       defaultSopsFile = ./secrets.yaml;
 
@@ -44,9 +43,6 @@ in
         };
 
         home.packages = with pkgs; [
-          # Drag-and-drop staging doors into backup buckets: mount, drop
-          # files in, unmount. The content lives only in the remote; the
-          # vfs write cache (~/.cache/rclone) is throwaway and not persisted.
           (writeShellApplication {
             name = "mount-unboxings";
             text = ''
@@ -63,9 +59,6 @@ in
                 --vfs-cache-mode writes --vfs-cache-max-age 1h
             '';
           })
-          # One-way backup pushes of local master data. Syncthing owns the
-          # source (~/budget, ~/sync/* are persistent); remotes are slaves —
-          # rclone sync mirrors there, including deletions.
           (writeShellApplication {
             name = "backup-budget";
             text = ''
