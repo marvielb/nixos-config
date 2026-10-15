@@ -68,7 +68,12 @@ top: {
               inInitrd = true;
             }
           ];
-          root.files = [ "/etc/machine-id" ];
+          # /etc/shadow holds `passwd`-set hashes; without it, tmpfs root
+          # resets passwords to initialPassword every reboot.
+          root.files = [
+            "/etc/machine-id"
+            "/etc/shadow"
+          ];
           # Personal sops age key (backup source: USB) — lets interactive
           # `just edit-secret` work without the USB plugged in. Not part of
           # the /run/secrets flow; activation uses the host SSH key instead.
