@@ -5,8 +5,17 @@ _: {
       settings.default = [ "foot.desktop" ];
     };
     environment.variables.TERMINAL = "foot";
+
+    # libexo (used by Thunar) resolves TerminalEmulator from xfconf, not
+    # from the xdg-terminal-exec spec.
+    programs.xfconf.enable = true;
+
+    custom.persist.home.directories = [ ".config/xfce4" ];
+
     home-manager.sharedModules = [
       ({ lib, ... }: {
+        xfconf.settings.xfce4-helpers.TerminalEmulator = "foot";
+
         programs.foot = {
           enable = true;
           settings = {
