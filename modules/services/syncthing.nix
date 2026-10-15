@@ -13,20 +13,26 @@ _: {
                 autoAcceptFolders = false;
               };
               poco = {
-                  id = "I4NJPSS-3GHKV73-FHR7CBB-ZOXQ6XE-KJLZO2B-ABCNKWG-N5ZVMCR-PYR2ZAN";
+                id = "I4NJPSS-3GHKV73-FHR7CBB-ZOXQ6XE-KJLZO2B-ABCNKWG-N5ZVMCR-PYR2ZAN";
                 autoAcceptFolders = false;
-                };
+              };
             };
             folders = {
-"Intersetial Journals" = {
-    path = "~/sync/Intersetial Journals";
-     devices = [ "proxmox" "poco" ];
-  };               
-  "t763h-s4dfw" = {
-      path = "~/sync/Passwords";
-      devices = ["proxmox" "poco"];
-    };
+              "Intersetial Journals" = {
+                path = "~/sync/Intersetial Journals";
+                devices = [
+                  "proxmox"
+                  "poco"
+                ];
               };
+              "t763h-s4dfw" = {
+                path = "~/sync/Passwords";
+                devices = [
+                  "proxmox"
+                  "poco"
+                ];
+              };
+            };
           };
         };
       }
@@ -35,6 +41,7 @@ _: {
     custom.persist.home.directories = [
       ".local/share/syncthing"
       ".config/syncthing"
+      "sync" # Synced folders′ primary data; owned here, not in rclone dirs.
     ];
   };
 }
