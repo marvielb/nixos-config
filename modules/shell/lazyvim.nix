@@ -16,9 +16,15 @@
           ];
           plugins = {
             # Centered distraction-free buffer layout (:NoNeckPain toggles).
+            # enableOnVimEnter: auto-centers on every nvim start.
             no-neck-pain = inputs.lazyvim.lib.lazyConfig {
               plugin = "shortcuts/no-neck-pain.nvim";
-              opts = { };
+              opts.autocmds.enableOnVimEnter = true;
+            };
+            # Disable snacks.nvim smooth scrolling (LazyVim core enables it).
+            no-smooth-scroll = inputs.lazyvim.lib.lazyConfig {
+              plugin = "folke/snacks.nvim";
+              opts.scroll.enabled = false;
             };
             # Disable LazyVim's default tab bar.
             bufferline = inputs.lazyvim.lib.lazyConfig {
