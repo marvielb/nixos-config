@@ -15,6 +15,16 @@
 
         programs.lazyvim = {
           enable = true;
+          config = {
+            # Un-sync yank from the system clipboard upstream sets by default;
+            # explicit "+ is the only way out to the system clipboard.
+            options = ''
+              vim.opt.clipboard = ""
+            '';
+            keymaps = ''
+              vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Copy to System Clipboard" })
+            '';
+          };
           treesitterParsers = with pkgs.vimPlugins.nvim-treesitter-parsers; [
             beancount
           ];
