@@ -82,19 +82,12 @@ top: {
         };
       };
 
-      # /etc/shadow bind mounts can't work: NixOS rewrites shadow
-      # atomically on activation, which fails on a mount point.
       users.mutableUsers = false;
-
-      sops.secrets.marvielb_password_hash = {
-        sopsFile = ./secrets.yaml;
-        neededForUsers = true;
-        mode = "0400";
-      };
 
       users.users.marvielb = {
         isNormalUser = true;
-        hashedPasswordFile = "/run/secrets/marvielb_password_hash";
+        # generate with: nix run nixpkgs#mkpasswd -- -m sha-512 (prompts once)
+        hashedPassword = "$6$4gRkrVku52qDf04Q$.9WuBlcS1mYITY6WVgYlU4k.SAF01pkTydJ1xdyIBtlBSH9XwwIc/STxhnp8DpdLhBevEDzDrbMQq0yt9Lv6s/";
         extraGroups = [
           "wheel"
           "seat"

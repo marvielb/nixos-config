@@ -62,6 +62,7 @@
         mouse.accel-profile = "flat";
         touchpad.tap = _: { };
         focus-follows-mouse = _: { max-scroll-amount = "85%"; };
+        warp-mouse-to-focus = _: { };
       };
 
       prefer-no-csd = _: { };

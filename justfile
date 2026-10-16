@@ -78,10 +78,13 @@ edit-secret path:
         exit 1
       }
       # sops runs as your user — only the one-line key read needs sudo.
-      exec env SOPS_AGE_KEY="$HOST_AGE" nix run nixpkgs#sops -- "{{path}}"
+      env SOPS_AGE_KEY="$HOST_AGE" nix run nixpkgs#sops -- "{{path}}"
+      git add "{{path}}"
+      exit 0
     fi
     echo "→ Using key: $KEY"
-    exec env SOPS_AGE_KEY_FILE="$KEY" nix run nixpkgs#sops -- "{{path}}"
+    env SOPS_AGE_KEY_FILE="$KEY" nix run nixpkgs#sops -- "{{path}}"
+    git add "{{path}}"
 
 # One-machine install: run ON the target machine (NixOS minimal ISO, root, network up).
 # Clones the repo, prompts for your personal age key (RAM-only) and LUKS passphrase,

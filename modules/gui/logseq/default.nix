@@ -22,6 +22,9 @@
     in
     {
       environment.systemPackages = [ logseq-wrapped ];
-      custom.persist.home.directories = [ ".logseq" ];
+      custom.persist.home.directories = [
+        ".logseq" # graph data
+        ".config/Logseq" # app state (Preferences = last open graph)
+      ];
     };
 }
