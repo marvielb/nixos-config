@@ -31,6 +31,10 @@ let
       slug = "enhancer-for-youtube";
       id = "enhancerforyoutube@maximerf.addons.mozilla.org";
     }
+    {
+      slug = "news-feed-eradicator";
+      id = "@news-feed-eradicator";
+    }
   ];
 
   extensionSettings = lib.listToAttrs (
@@ -97,6 +101,7 @@ in
                 "deArrow@ajay.app"
                 "vimium-c@gdh1995.cn"
                 "enhancerforyoutube@maximerf.addons.mozilla.org"
+                "@news-feed-eradicator"
               ];
             };
 
