@@ -5,7 +5,7 @@
       stable = import inputs.nixpkgs-stable {
         localSystem = pkgs.system;
         config = {
-          permittedInsecurePackages = [ "electron-37.10.2" ];
+          permittedInsecurePackages = [ "electron-39.8.10" ];
         };
       };
 
