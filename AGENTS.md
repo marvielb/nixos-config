@@ -397,6 +397,14 @@ would a reader who knows NixOS and the pattern in this repo learn anything
 new from it? If no, don't write it. When editing, expected upkeep: keep or
  tighten comments accordingly.
 
+## Git — No Auto-Commits
+
+Never `git commit` or `git push` unless explicitly asked in the current
+turn. Prepare changes (edit, `git add` when required for flake eval,
+verify with a build/eval) and present them; the user gives the go-ahead.
+This includes self-initiated fixups of earlier mistakes — propose them,
+don't land them.
+
 ## Git — Must Stage Before Testing
 
 Nix flakes read from the **git index**, not the working tree. Any new or modified `.nix` file
