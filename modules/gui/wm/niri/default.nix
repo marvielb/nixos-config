@@ -6,9 +6,7 @@
         inherit pkgs;
         package = pkgs.niri;
         settings = (config.custom.niri.settings or { }) // {
-          window-rules =
-            (config.custom.niri.settings.window-rules or [ ])
-            ++ config.custom.niri.windowRules;
+          window-rules = (config.custom.niri.settings.window-rules or [ ]) ++ config.custom.niri.windowRules;
           binds = config.custom.niri.keybinds or { };
           spawn-at-startup = config.custom.niri.startup or [ ];
           spawn-sh-at-startup = config.custom.niri.startupSh or [ ];
@@ -23,5 +21,9 @@
         enable = true;
         package = niri';
       };
+
+      # niri spawns this on demand to create the X11 socket when an X-only
+      # client (e.g. PureRef) connects.
+      environment.systemPackages = [ pkgs.xwayland-satellite ];
     };
 }
