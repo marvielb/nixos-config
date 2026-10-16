@@ -65,6 +65,16 @@
         warp-mouse-to-focus = _: { };
       };
 
+      # EDID marks 60Hz as preferred; the M27Q's native max needs an explicit override.
+      output = _: {
+        props = "DP-3";
+        content = {
+          mode = "2560x1440@170.001";
+          # Bare node: takes no args; `on-demand` property defaults false.
+          variable-refresh-rate = _: { };
+        };
+      };
+
       prefer-no-csd = _: { };
       hotkey-overlay.skip-at-startup = _: { };
       cursor.xcursor-theme = "phinger-cursors-dark";
