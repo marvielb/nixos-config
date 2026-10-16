@@ -73,7 +73,7 @@ _: {
       (writeShellApplication {
         name = "tmux-budget";
         text = ''
-          exec tmux-dev ~/budget budget "nvim" "fava 2023.beancount"
+          exec tmux-dev ~/budget budget "nvim 2023.beancount" "fava 2023.beancount"
         '';
       })
     ];
